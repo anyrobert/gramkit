@@ -1,5 +1,6 @@
 import { ACTIONS, ACTION_BY_ID, DIGITS, GROUPS, keysFor, type ActionId, type Keymap } from '../shared/actions';
-import { comboFromEvent, comboLabels, isReserved, MAX_KEYS_PER_ACTION } from '../shared/keys';
+import { setLanguage, t, translatePage } from '../shared/i18n';
+import { comboFromEvent, comboLabels, isReserved, MAX_KEYS_PER_ACTION, SEQUENCE_MS, THEN } from '../shared/keys';
 import { loadSettings, onSettingsChange, saveSettings, type Settings } from '../shared/settings';
 import { $, bindSettings, buildRows, renderSettings } from '../shared/ui';
 
@@ -7,6 +8,9 @@ const keymapRoot = $('#keymap');
 
 let settings: Settings;
 let capturing: ActionId | null = null;
+/** First key of a capture; a second key within SEQUENCE_MS makes a sequence like `G H`. */
+let firstKey: string | null = null;
+let firstKeyTimer: ReturnType<typeof setTimeout> | undefined;
 const notes = new Map<ActionId, string>();
 
 function sameKeys(a: string[], b: string[]): boolean {
@@ -26,9 +30,10 @@ function caps(combo: string): HTMLElement {
   const wrap = document.createElement('span');
   wrap.className = 'caps';
   for (const label of comboLabels(combo)) {
-    const kbd = document.createElement('kbd');
-    kbd.textContent = label;
-    wrap.append(kbd);
+    const node = document.createElement(label === THEN ? 'span' : 'kbd');
+    if (label === THEN) node.className = 'then';
+    node.textContent = label === THEN ? t('then') : label;
+    wrap.append(node);
   }
   return wrap;
 }
@@ -52,7 +57,7 @@ function row(id: ActionId): HTMLElement {
 
   const label = document.createElement('div');
   label.className = 'km-label';
-  label.textContent = action.label;
+  label.textContent = t(action.label);
   const note = notes.get(id);
   if (note) {
     const n = document.createElement('span');
@@ -67,16 +72,17 @@ function row(id: ActionId): HTMLElement {
   if (capturing === id) {
     const capture = document.createElement('span');
     capture.className = 'capture';
-    capture.append('Press a key…');
+    if (firstKey) capture.append(caps(firstKey), t('then…'));
+    else capture.append(t('Press a key…'));
     const esc = document.createElement('kbd');
     esc.textContent = 'Esc';
-    capture.append(esc, 'cancels');
+    capture.append(esc, t('cancels'));
     right.append(capture);
   } else {
     if (!keys.length) {
       const none = document.createElement('span');
       none.className = 'unbound';
-      none.textContent = 'Not set';
+      none.textContent = t('Not set');
       right.append(none);
     }
     for (const combo of keys) {
@@ -84,27 +90,32 @@ function row(id: ActionId): HTMLElement {
       chip.className = 'chip';
       chip.append(caps(combo));
       chip.append(
-        button('chip-remove', '×', `Remove ${comboLabels(combo).join(' ')}`, () => {
+        button('chip-remove', '×', t('Remove {keys}', { keys: comboLabels(combo).join(' ') }), () => {
           void saveKeymap({ ...settings.keymap, [id]: keys.filter((k) => k !== combo) });
         }),
       );
       right.append(chip);
     }
     if (id === 'video.jump') {
-      if (!keys.includes(DIGITS)) right.append(button('add', '+', 'Use the number keys', () => void saveKeymap({ ...settings.keymap, [id]: [DIGITS] })));
+      if (!keys.includes(DIGITS)) right.append(button('add', '+', t('Use the number keys'), () => void saveKeymap({ ...settings.keymap, [id]: [DIGITS] })));
     } else if (keys.length < MAX_KEYS_PER_ACTION) {
       right.append(
-        button('add', '+', `Add a shortcut for ${action.label}`, () => {
+        button('add', '+', t('Add a shortcut for {action}', { action: t(action.label) }), () => {
           capturing = id;
+          firstKey = null;
           render();
         }),
       );
     }
-    if (settings.keymap[id]) right.append(button('reset', 'Reset', `Reset ${action.label}`, () => {
-      const keymap = { ...settings.keymap };
-      delete keymap[id];
-      void saveKeymap(keymap);
-    }));
+    if (settings.keymap[id]) {
+      right.append(
+        button('reset', t('Reset'), t('Reset {action}', { action: t(action.label) }), () => {
+          const keymap = { ...settings.keymap };
+          delete keymap[id];
+          void saveKeymap(keymap);
+        }),
+      );
+    }
   }
 
   node.append(label, right);
@@ -118,7 +129,7 @@ function render(): void {
       const section = document.createElement('section');
       section.className = 'km-group';
       const h = document.createElement('h3');
-      h.textContent = group;
+      h.textContent = t(group);
       section.append(h, ...ACTIONS.filter((a) => a.group === group).map((a) => row(a.id)));
       return section;
     }),
@@ -134,6 +145,29 @@ function flashNote(id: ActionId, text: string): void {
   }, 3500);
 }
 
+function bind(id: ActionId, combo: string): void {
+  capturing = null;
+  firstKey = null;
+  clearTimeout(firstKeyTimer);
+  const keymap: Keymap = { ...settings.keymap };
+  // A key does one thing: take it away from whichever action had it, including
+  // sequences that start with it (binding G alone ends `G H`) and single keys
+  // a new sequence starts with.
+  const clashes = (k: string) => k === combo || k.startsWith(`${combo} `) || combo.startsWith(`${k} `);
+  for (const other of ACTIONS) {
+    if (other.id === id) continue;
+    const otherKeys = keysFor(other.id, keymap);
+    if (otherKeys.some(clashes)) {
+      keymap[other.id] = otherKeys.filter((k) => !clashes(k));
+      flashNote(id, t('Moved from “{action}”', { action: t(other.label) }));
+    }
+  }
+  const keys = keysFor(id, keymap).filter((k) => !clashes(k) || k === combo);
+  if (!keys.includes(combo)) keys.push(combo);
+  keymap[id] = keys;
+  void saveKeymap(keymap);
+}
+
 window.addEventListener(
   'keydown',
   (e) => {
@@ -143,46 +177,54 @@ window.addEventListener(
     e.preventDefault();
     e.stopPropagation();
     const id = capturing;
-    if (isReserved(combo)) {
-      flashNote(id, 'Tab, Enter and Backspace stay with the browser');
+    if (combo === 'Escape') {
+      capturing = null;
+      firstKey = null;
+      clearTimeout(firstKeyTimer);
       return render();
     }
-    capturing = null;
-    if (combo === 'Escape') return render();
-
-    const keymap: Keymap = { ...settings.keymap };
-    // A key does one thing: take it away from whichever action had it.
-    for (const other of ACTIONS) {
-      if (other.id === id) continue;
-      const otherKeys = keysFor(other.id, keymap);
-      if (otherKeys.includes(combo)) {
-        keymap[other.id] = otherKeys.filter((k) => k !== combo);
-        flashNote(id, `Moved from “${other.label}”`);
-      }
+    if (isReserved(combo)) {
+      flashNote(id, t('Tab, Enter and Backspace stay with the browser'));
+      return render();
     }
-    const keys = keysFor(id, keymap);
-    if (!keys.includes(combo)) keymap[id] = [...keys, combo];
-    void saveKeymap(keymap);
+    if (firstKey) return bind(id, `${firstKey} ${combo}`);
+    firstKey = combo;
+    firstKeyTimer = setTimeout(() => bind(id, combo), SEQUENCE_MS);
+    render();
   },
   true,
 );
 
 $('#reset-all').addEventListener('click', () => {
   capturing = null;
+  firstKey = null;
+  clearTimeout(firstKeyTimer);
   void saveKeymap({});
 });
 
 async function main(): Promise<void> {
-  buildRows();
   settings = await loadSettings();
+  setLanguage(settings.language);
+  translatePage();
+  buildRows();
   render();
-  bindSettings(document, (next) => {
-    settings = next;
-    render();
-  });
+  bindSettings(
+    document,
+    (next) => {
+      settings = next;
+      render();
+    },
+    () => settings,
+  );
   onSettingsChange((next) => {
+    const relabel = next.language !== settings.language;
     settings = next;
-    if (!capturing) render();
+    if (relabel) {
+      setLanguage(settings.language);
+      translatePage();
+      buildRows();
+    }
+    if (!capturing || relabel) render();
   });
 }
 

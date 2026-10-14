@@ -1,6 +1,9 @@
 import { api } from '../shared/browser';
+import { setLanguage, t, translatePage } from '../shared/i18n';
 import {
   loadPlayback,
+  loadUsage,
+  onUsageChange,
   loadSettings,
   onPlaybackChange,
   onSettingsChange,
@@ -12,6 +15,7 @@ import {
   type Playback,
   type Section,
   type Settings,
+  type Usage,
 } from '../shared/settings';
 import { $, bindSettings, buildRows, renderSettings } from '../shared/ui';
 
@@ -20,6 +24,7 @@ const SCOPE: Record<Section, string> = { feed: 'Feed and posts', reels: 'Reels',
 
 const readout = $<HTMLOutputElement>('#readout');
 const scope = $('#scope');
+const usageNode = $('#usage');
 const presets = $('#presets');
 
 let settings: Settings;
@@ -38,10 +43,17 @@ function render(): void {
     readout.classList.add('bump');
   }
   readout.classList.toggle('hot', rate !== 1);
-  scope.textContent = settings.speedPerSection ? SCOPE[section] : 'All videos';
+  scope.textContent = t(settings.speedPerSection ? SCOPE[section] : 'All videos');
   for (const button of presets.children) {
     button.setAttribute('aria-pressed', String(Number((button as HTMLElement).dataset.rate) === rate));
   }
+}
+
+function renderUsage(usage: Usage): void {
+  const minutes = Math.floor(usage.seconds / 60);
+  usageNode.textContent = settings.dailyLimit
+    ? t('Today: {m} of {limit} min', { m: minutes, limit: settings.dailyLimit })
+    : t('Today: {m} min on Instagram', { m: minutes });
 }
 
 async function setRate(rate: number): Promise<void> {
@@ -51,6 +63,9 @@ async function setRate(rate: number): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  [settings, playback] = await Promise.all([loadSettings(), loadPlayback()]);
+  setLanguage(settings.language);
+  translatePage();
   buildRows();
   for (const rate of PRESETS) {
     const b = document.createElement('button');
@@ -62,7 +77,6 @@ async function main(): Promise<void> {
     presets.append(b);
   }
 
-  [settings, playback] = await Promise.all([loadSettings(), loadPlayback()]);
   const [tab] = await api.tabs.query({ active: true, currentWindow: true });
   if (tab?.url) {
     const url = new URL(tab.url);
@@ -70,14 +84,27 @@ async function main(): Promise<void> {
   }
   render();
 
-  bindSettings(document, (next) => {
-    settings = next;
-    render();
-  });
+  bindSettings(
+    document,
+    (next) => {
+      settings = next;
+      render();
+    },
+    () => settings,
+  );
   onSettingsChange((next) => {
+    const relabel = next.language !== settings.language;
     settings = next;
+    if (relabel) {
+      setLanguage(settings.language);
+      translatePage();
+      buildRows();
+    }
     render();
+    void loadUsage().then(renderUsage);
   });
+  void loadUsage().then(renderUsage);
+  onUsageChange(renderUsage);
   onPlaybackChange((next) => {
     playback = next;
     render();

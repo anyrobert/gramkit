@@ -5,7 +5,8 @@
 
 import { ACTIONS, GROUPS, keysFor } from '../shared/actions';
 import { api, type Message } from '../shared/browser';
-import { comboLabels } from '../shared/keys';
+import { t } from '../shared/i18n';
+import { comboLabels, THEN } from '../shared/keys';
 import { HUD_CSS } from './hud.css';
 import { store } from './store';
 
@@ -79,30 +80,30 @@ export function toggleHelp(): void {
   if (helpNode) return closeHelp();
   const overlay = el('div', 'help');
   overlay.setAttribute('role', 'dialog');
-  overlay.setAttribute('aria-label', 'Gramkit keyboard shortcuts');
+  overlay.setAttribute('aria-label', t('Gramkit keyboard shortcuts'));
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) closeHelp();
   });
 
   const card = el('div', 'help-card');
   const head = el('div', 'help-head');
-  head.append(el('h2', '', 'Keyboard shortcuts'), el('span', 'help-sub', 'Gramkit'));
+  head.append(el('h2', '', t('Keyboard shortcuts')), el('span', 'help-sub', 'Gramkit'));
   card.append(head);
 
   const grid = el('div', 'help-grid');
   for (const group of GROUPS) {
     const section = el('section');
-    section.append(el('h3', '', group));
+    section.append(el('h3', '', t(group)));
     for (const action of ACTIONS.filter((a) => a.group === group)) {
       const keys = keysFor(action.id, store.settings.keymap);
       const row = el('div', 'help-row');
       const caps = el('span', 'caps');
-      if (!keys.length) caps.append(el('span', 'unbound', 'not set'));
+      if (!keys.length) caps.append(el('span', 'unbound', t('not set')));
       keys.forEach((combo, i) => {
-        if (i) caps.append(el('span', 'or', 'or'));
-        for (const label of comboLabels(combo)) caps.append(el('kbd', '', label));
+        if (i) caps.append(el('span', 'or', t('or')));
+        for (const label of comboLabels(combo)) caps.append(label === THEN ? el('span', 'then', t('then')) : el('kbd', '', label));
       });
-      row.append(el('span', 'label', action.label), caps);
+      row.append(el('span', 'label', t(action.label)), caps);
       section.append(row);
     }
     grid.append(section);
@@ -110,8 +111,8 @@ export function toggleHelp(): void {
   card.append(grid);
 
   const foot = el('div', 'help-foot');
-  foot.append(el('p', '', 'Arrow keys and Space act on a video only while the pointer is over it. On Reels, ↑ and ↓ still move between reels. In Stories, the arrows stay Instagram’s.'));
-  const customize = el('button', 'help-btn', 'Customize shortcuts');
+  foot.append(el('p', '', t('Arrow keys and Space act on a video only while the pointer is over it. On Reels, ↑ and ↓ still move between reels. In Stories, the arrows stay Instagram’s.')));
+  const customize = el('button', 'help-btn', t('Customize shortcuts'));
   customize.type = 'button';
   customize.addEventListener('click', () => {
     void api.runtime.sendMessage({ type: 'open-options' } satisfies Message);

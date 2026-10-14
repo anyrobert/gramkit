@@ -27,6 +27,13 @@ const FIGHT_PAUSE_MS = 5000;
 
 const USER_INTENT_MS = 700;
 
+/** Plays the user started through Gramkit (a key, the bar); autoplay rules let these through. */
+export const userPlays = new WeakSet<HTMLVideoElement>();
+/** Videos the user started at least once; Instagram may pause and resume them as they scroll. */
+const startedByUser = new WeakSet<HTMLVideoElement>();
+const endedAt = new WeakMap<HTMLVideoElement, { at: number; src: string }>();
+const unlooped = new WeakSet<HTMLVideoElement>();
+
 export function currentSpeed(): number {
   return speedFor(store.settings, store.playback, sectionOf(location.pathname));
 }
@@ -165,11 +172,17 @@ export function installMedia(): void {
     fights.rate.delete(video);
     fights.audio.delete(video);
   });
-  on('loadedmetadata', applySpeed);
+  on('loadedmetadata', (video) => {
+    applySpeed(video);
+    applyLoop(video);
+  });
   on('play', (video) => {
     applySpeed(video);
     applyAudio(video);
+    applyLoop(video);
+    applyAutoplay(video);
   });
+  on('ended', onEnded);
   on('playing', applyAudio);
   on('ratechange', onRateChange);
   on('volumechange', onVolumeChange);
@@ -194,7 +207,53 @@ export function installMedia(): void {
     }
     for (const video of allVideos()) {
       applySpeed(video);
+      applyLoop(video);
       if (!video.paused) applyAudio(video);
     }
   });
+}
+
+function applyLoop(video: HTMLVideoElement): void {
+  const keep = !store.settings.enabled || store.settings.videoEnd === 'loop';
+  if (!keep && video.loop) {
+    video.loop = false;
+    unlooped.add(video);
+  } else if (keep && unlooped.has(video)) {
+    video.loop = true;
+    unlooped.delete(video);
+  }
+}
+
+function applyAutoplay(video: HTMLVideoElement): void {
+  const byUser = userPlays.has(video) || userCaused(video);
+  userPlays.delete(video);
+  if (byUser) startedByUser.add(video);
+  const { settings } = store;
+  if (!settings.enabled || byUser) return;
+  // Instagram restarts finished videos itself with play(). Stories reuse the
+  // element for the next story, which is a new source, not a restart.
+  const ended = endedAt.get(video);
+  const restart = !!ended && ended.src === video.currentSrc && performance.now() - ended.at < 1000;
+  if (restart && settings.videoEnd !== 'loop' && sectionOf(location.pathname) !== 'stories') {
+    video.pause();
+    return;
+  }
+  if (!settings.autoplay && sectionOf(location.pathname) === 'feed' && !startedByUser.has(video)) video.pause();
+}
+
+function onEnded(video: HTMLVideoElement): void {
+  endedAt.set(video, { at: performance.now(), src: video.currentSrc });
+  if (!store.settings.enabled || store.settings.videoEnd !== 'next' || sectionOf(location.pathname) !== 'reels') return;
+  nextReel(video);
+}
+
+/** Scrolls to the reel after `video`; Instagram's reel list snaps to it and starts it. */
+export function nextReel(video: HTMLVideoElement): void {
+  const top = video.getBoundingClientRect().top;
+  const next = allVideos()
+    .map((v) => ({ v, top: v.getBoundingClientRect().top }))
+    .filter((x) => x.top > top + 50)
+    .sort((a, b) => a.top - b.top)[0]?.v;
+  if (next) next.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  else document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', code: 'ArrowDown', bubbles: true }));
 }

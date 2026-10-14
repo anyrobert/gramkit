@@ -213,6 +213,91 @@ body > * {
   box-shadow: inset 0 0 0 1px var(--line-strong), 0 1px 2px rgb(0 0 0 / 0.4);
 }
 
+/* Select, time, day chips -------------------------------------------------- */
+
+.select,
+.time {
+  flex: none;
+  height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  color: var(--ink);
+  font: 600 12.5px/1 var(--display);
+  cursor: pointer;
+}
+
+.time {
+  font-family: var(--mono);
+  color-scheme: dark;
+}
+
+.select:focus-visible,
+.time:focus-visible,
+.day input:focus-visible + span {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+.row-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.hours-times {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  color: var(--ink-3);
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.day {
+  position: relative;
+  cursor: pointer;
+}
+
+.day input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.day span {
+  display: block;
+  padding: 6px 0;
+  border-radius: 8px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink-3);
+  font-size: 11.5px;
+  font-weight: 650;
+  text-align: center;
+  transition: background 0.18s var(--ease), color 0.18s var(--ease);
+}
+
+.day input:checked + span {
+  background: var(--heat-soft);
+  box-shadow: inset 0 0 0 1px rgb(255 181 71 / 0.4);
+  color: var(--ink);
+}
+
+.hours[data-on='false'] .hours-times,
+.hours[data-on='false'] .days {
+  opacity: 0.45;
+}
+
 /* Keycaps ------------------------------------------------------------------ */
 
 kbd {

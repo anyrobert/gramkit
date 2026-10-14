@@ -2,6 +2,7 @@
 // and fullscreen. It floats in our shadow root and follows the hovered video's
 // rectangle each frame, so nothing is inserted into Instagram's own markup.
 
+import { t } from '../shared/i18n';
 import { SPEED_STEPS, formatSpeed } from '../shared/settings';
 import {
   changeSpeed,
@@ -15,6 +16,7 @@ import {
 } from './commands';
 import { el, hudRoot } from './hud';
 import { currentSpeed, isMuted, setVolume } from './media';
+import { downloadCurrent } from './posts';
 import { store, subscribe } from './store';
 import { contains, hoveredVideo, pointer } from './videos';
 
@@ -31,6 +33,7 @@ const ICONS = {
     'M16.5 12A4.5 4.5 0 0 0 14 7.97v2.21l2.45 2.45c.03-.2.05-.41.05-.63Zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.8 8.8 0 0 0 21 12a9 9 0 0 0-7-8.77v2.06A7 7 0 0 1 19 12ZM4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a9 9 0 0 0 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3ZM12 4 9.91 6.09 12 8.18V4Z',
   pip: 'M19 11h-8v6h8v-6Zm4 8V4.98C23 3.88 22.1 3 21 3H3c-1.1 0-2 .88-2 1.98V19c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2Zm-2 .02H3V4.97h18v14.05Z',
   fullscreen: 'M7 14H5v5h5v-2H7v-3Zm-2-4h2V7h3V5H5v5Zm12 7h-3v2h5v-5h-2v3ZM14 5v2h3v3h2V5h-5Z',
+  download: 'M11 4h2v8.17l3.59-3.58L18 10l-6 6-6-6 1.41-1.41L11 12.17V4Zm-6 14h14v2H5v-2Z',
 };
 
 function icon(path: string): SVGSVGElement {
@@ -48,12 +51,22 @@ function setIcon(button: HTMLButtonElement, path: string): void {
   if (p && p.getAttribute('d') !== path) p.setAttribute('d', path);
 }
 
+/** Buttons and their English labels; relabeled once the language setting loads. */
+const labelled: [HTMLElement, string][] = [];
+
+function relabel(): void {
+  for (const [node, text] of labelled) {
+    const label = t(text);
+    node.setAttribute('aria-label', label);
+    if (node instanceof HTMLButtonElement) node.title = label;
+  }
+}
+
 function button(className: string, label: string, path?: string): HTMLButtonElement {
   const b = el('button', `b ${className}`);
   b.type = 'button';
   b.tabIndex = -1;
-  b.setAttribute('aria-label', label);
-  b.title = label;
+  labelled.push([b, label]);
   if (path) b.append(icon(path));
   // Keep focus on the page so shortcuts and Space keep working after a click.
   b.addEventListener('pointerdown', (e) => e.preventDefault());
@@ -69,7 +82,7 @@ export function installControls(): void {
   let mounted = false;
 
   const bar = el('div', 'bar');
-  const play = button('play', 'Play / pause (K)', ICONS.play);
+  const play = button('play', 'Play / pause', ICONS.play);
   const time = el('span', 'time', '0:00');
   const track = el('div', 'track');
   const buffered = el('div', 'buffered');
@@ -78,25 +91,26 @@ export function installControls(): void {
   const tip = el('div', 'tip');
   track.append(buffered, fill, thumb, tip);
   const speedWrap = el('div', 'speed-wrap');
-  const speed = button('speed', 'Playback speed (< >)');
+  const speed = button('speed', 'Playback speed');
   const menu = el('div', 'menu');
   menu.setAttribute('role', 'menu');
   speedWrap.append(speed, menu);
   const vol = el('div', 'vol');
-  const mute = button('mute', 'Mute (M)', ICONS.volume);
+  const mute = button('mute', 'Mute', ICONS.volume);
   const slider = el('input', 'slider');
   slider.type = 'range';
   slider.min = '0';
   slider.max = '100';
   slider.step = '1';
   slider.tabIndex = -1;
-  slider.setAttribute('aria-label', 'Volume');
+  labelled.push([slider, 'Volume']);
   vol.append(slider, mute);
-  const pip = button('pip', 'Picture-in-picture (P)', ICONS.pip);
-  const fs = button('fs', 'Fullscreen (F)', ICONS.fullscreen);
+  const save = button('save', 'Download', ICONS.download);
+  const pip = button('pip', 'Picture-in-picture', ICONS.pip);
+  const fs = button('fs', 'Fullscreen', ICONS.fullscreen);
   // Mute sits at the far right, where Instagram's own sound button is under the
   // bar, so reaching for "the speaker" still toggles sound.
-  bar.append(play, time, track, speedWrap, pip, fs, vol);
+  bar.append(play, time, track, speedWrap, save, pip, fs, vol);
 
   for (const step of MENU_STEPS) {
     const item = button('menu-item', formatSpeed(step));
@@ -119,6 +133,7 @@ export function installControls(): void {
   bar.addEventListener('pointerleave', () => (overBar = false));
   play.addEventListener('click', () => video && playPause(video));
   mute.addEventListener('click', () => video && toggleMute(video));
+  save.addEventListener('click', () => video && void downloadCurrent(video));
   pip.addEventListener('click', () => video && void togglePip(video));
   fs.addEventListener('click', () => video && void toggleFullscreen(video));
   speed.addEventListener('click', () => {
@@ -247,5 +262,9 @@ export function installControls(): void {
   window.addEventListener('pointermove', wake, { capture: true, passive: true });
   window.addEventListener('scroll', wake, { capture: true, passive: true });
   document.addEventListener('pause', wake, true);
-  subscribe(wake);
+  relabel();
+  subscribe(() => {
+    relabel();
+    wake();
+  });
 }

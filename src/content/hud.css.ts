@@ -2,7 +2,7 @@ export const HUD_CSS = /* css */ `
 :host { all: initial; }
 * { box-sizing: border-box; }
 
-.toast, .bar, .help {
+.toast, .bar, .help, .palette, .limit {
   --ink: #fff7ef;
   --ink-2: rgb(255 247 239 / 0.72);
   --amber: #ffb547;
@@ -214,7 +214,7 @@ export const HUD_CSS = /* css */ `
 .slider::-moz-range-thumb { width: 12px; height: 12px; border: 0; border-radius: 50%; background: #fff; }
 
 .bar.narrow .time, .bar.narrow .pip { display: none; }
-.bar.tiny .fs, .bar.tiny .vol .slider { display: none; }
+.bar.tiny .fs, .bar.tiny .save, .bar.tiny .vol .slider { display: none; }
 
 /* Shortcut overlay ------------------------------------------------------------ */
 
@@ -307,6 +307,87 @@ kbd {
   cursor: pointer;
 }
 .help-btn:hover { filter: brightness(1.08); }
+.then { color: rgb(255 247 239 / 0.45); font-size: 11px; padding: 0 1px; }
+
+/* Command palette --------------------------------------------------------------- */
+
+.palette {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 14vh 16px 16px;
+  background: rgb(8 6 6 / 0.5);
+  backdrop-filter: blur(4px);
+  pointer-events: auto;
+  animation: fade 0.14s ease;
+}
+.palette-card {
+  width: min(600px, 100%);
+  border-radius: 18px;
+  background: #151112;
+  box-shadow: 0 30px 80px rgb(0 0 0 / 0.55), inset 0 0 0 1px rgb(255 255 255 / 0.08);
+  overflow: hidden;
+  animation: rise 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.palette-input {
+  all: unset;
+  display: block;
+  width: 100%;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+  color: var(--ink);
+  font: 500 16px/1.3 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+.palette-input::placeholder { color: rgb(255 247 239 / 0.4); }
+.palette-list { max-height: min(420px, 56vh); overflow: auto; padding: 6px; margin: 0; list-style: none; }
+.palette-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.palette-item.active { background: rgb(255 255 255 / 0.07); box-shadow: inset 2px 0 0 var(--amber); }
+.palette-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
+.palette-group { color: rgb(255 247 239 / 0.45); font-size: 11px; white-space: nowrap; }
+.palette-state { color: var(--amber); font-size: 11.5px; font-weight: 650; }
+.palette-empty { padding: 14px 12px; color: var(--ink-2); font-size: 13px; }
+.palette-foot { display: flex; gap: 14px; padding: 9px 16px; border-top: 1px solid rgb(255 255 255 / 0.08); color: rgb(255 247 239 / 0.45); font-size: 11.5px; }
+.palette kbd { min-width: 20px; height: 20px; padding: 0 5px; font-size: 10.5px; }
+
+/* Time limit -------------------------------------------------------------------- */
+
+.limit {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(8 6 6 / 0.86);
+  backdrop-filter: blur(14px);
+  pointer-events: auto;
+  text-align: center;
+  animation: fade 0.3s ease;
+}
+.limit-card { max-width: 420px; }
+.limit h2 { margin: 0 0 8px; font-size: 30px; font-weight: 800; letter-spacing: -0.03em; }
+.limit p { margin: 0 0 22px; color: var(--ink-2); font-size: 14px; line-height: 1.5; }
+.limit-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.limit-btn {
+  all: unset;
+  padding: 10px 16px;
+  border-radius: 11px;
+  background: rgb(255 255 255 / 0.08);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+  font-weight: 650;
+  font-size: 13px;
+  cursor: pointer;
+}
+.limit-btn.hot { background: var(--heat); color: #1a0d05; box-shadow: none; }
 
 @keyframes fade { from { opacity: 0; } }
 @keyframes rise { from { opacity: 0; transform: translateY(10px) scale(0.98); } }

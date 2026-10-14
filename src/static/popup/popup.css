@@ -155,6 +155,16 @@ body {
   margin: 16px 2px 8px;
 }
 
+.usage {
+  margin: 8px 2px 0;
+  color: var(--ink-3);
+  font: 500 11px/1.3 var(--mono);
+}
+
+.usage:empty {
+  display: none;
+}
+
 .foot {
   display: flex;
   align-items: center;

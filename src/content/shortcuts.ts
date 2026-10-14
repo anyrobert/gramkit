@@ -2,22 +2,36 @@
 // window, ahead of Instagram's handlers, and only swallows a key when it
 // actually did something with it.
 
-import { ACTION_BY_ID, DIGITS, resolveKeymap, type ActionId } from '../shared/actions';
+import { ACTION_BY_ID, DIGITS, resolveKeymap, sequenceStarts, type ActionId } from '../shared/actions';
 import { api } from '../shared/browser';
-import { CONTESTED, comboFromEvent, isDigitCombo } from '../shared/keys';
+import { CONTESTED, comboFromEvent, isDigitCombo, SEQUENCE_MS } from '../shared/keys';
 import { sectionOf } from '../shared/settings';
 import {
+  changeSpeed,
+  frameStep,
   jumpToTenth,
   playPause,
+  saveFrame,
   seekBy,
   speedStep,
-  changeSpeed,
   toggleFullscreen,
   toggleMute,
   togglePip,
   volumeBy,
 } from './commands';
 import { closeHelp, isHelpOpen, toggleHelp } from './hud';
+import { goTo } from './nav';
+import { togglePalette } from './palette';
+import {
+  downloadCurrent,
+  openComments,
+  openProfile,
+  stepPost,
+  stepSlide,
+  toggleLike,
+  toggleSave,
+  toggleStoryPause,
+} from './posts';
 import { store, subscribe } from './store';
 import { activeVideo, hoveredVideo } from './videos';
 
@@ -47,21 +61,64 @@ function isTyping(e: KeyboardEvent): boolean {
 /**
  * Which video a combo may act on. Arrow keys and Space also scroll the page,
  * move through carousels, reels and stories, so they only reach a video where
- * that won't take a key away from Instagram.
+ * that won't take a key away from Instagram. Without a combo (the command
+ * palette), the active video.
  */
-function targetVideo(combo: string): HTMLVideoElement | null {
-  if (!CONTESTED.has(combo)) return activeVideo();
+function targetVideo(combo: string | null): HTMLVideoElement | null {
+  if (!combo || !CONTESTED.has(combo)) return activeVideo();
   const section = sectionOf(location.pathname);
   if (section === 'stories') return null;
   if (section === 'reels') return combo === 'ArrowUp' || combo === 'ArrowDown' ? null : activeVideo();
   return hoveredVideo();
 }
 
-function run(id: ActionId, combo: string): boolean {
-  if (id === 'app.help') {
-    toggleHelp();
-    return true;
+/** Actions that don't need a video. Returns null for video actions. */
+function runPageAction(id: ActionId): boolean | null {
+  switch (id) {
+    case 'app.help':
+      toggleHelp();
+      return true;
+    case 'app.palette':
+      togglePalette(runAction);
+      return true;
+    case 'post.next':
+      return stepPost(1);
+    case 'post.prev':
+      return stepPost(-1);
+    case 'post.like':
+      return toggleLike();
+    case 'post.save':
+      return toggleSave();
+    case 'post.comments':
+      return openComments();
+    case 'post.profile':
+      return openProfile();
+    case 'post.slideNext':
+      return stepSlide(1);
+    case 'post.slidePrev':
+      return stepSlide(-1);
+    case 'post.download':
+      void downloadCurrent();
+      return true;
+    case 'go.home':
+    case 'go.messages':
+    case 'go.explore':
+    case 'go.reels':
+    case 'go.profile':
+    case 'go.saved':
+    case 'go.search':
+      goTo(id.slice(3) as Parameters<typeof goTo>[0]);
+      return true;
+    default:
+      return null;
   }
+}
+
+/** Runs an action; `combo` is the key that triggered it, or null from the command palette. */
+export function runAction(id: ActionId, combo: string | null = null): boolean {
+  const done = runPageAction(id);
+  if (done !== null) return done;
+  if (id === 'video.playPause' && sectionOf(location.pathname) === 'stories' && toggleStoryPause()) return true;
   const video = targetVideo(combo);
   if (!video) return false;
   switch (id) {
@@ -81,7 +138,13 @@ function run(id: ActionId, combo: string): boolean {
       seekBy(video, 10);
       break;
     case 'video.jump':
-      jumpToTenth(video, Number(combo));
+      jumpToTenth(video, Number(combo ?? 0));
+      break;
+    case 'video.frameBack':
+      frameStep(video, -1);
+      break;
+    case 'video.frameForward':
+      frameStep(video, 1);
       break;
     case 'speed.up':
       speedStep(video, 1);
@@ -107,15 +170,29 @@ function run(id: ActionId, combo: string): boolean {
     case 'view.pip':
       void togglePip(video);
       break;
+    case 'view.saveFrame':
+      void saveFrame(video);
+      break;
+    default:
+      return false;
   }
   return true;
 }
 
 export function installShortcuts(): void {
   let keymap = resolveKeymap(store.settings.keymap);
+  let starts = sequenceStarts(keymap);
   subscribe((prev) => {
-    if (prev.settings.keymap !== store.settings.keymap) keymap = resolveKeymap(store.settings.keymap);
+    if (prev.settings.keymap === store.settings.keymap) return;
+    keymap = resolveKeymap(store.settings.keymap);
+    starts = sequenceStarts(keymap);
   });
+  let pending: { combo: string; at: number } | null = null;
+
+  const swallow = (e: KeyboardEvent) => {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  };
 
   window.addEventListener(
     'keydown',
@@ -126,8 +203,22 @@ export function installShortcuts(): void {
 
       if (isHelpOpen() && combo === 'Escape') {
         closeHelp();
-        e.preventDefault();
-        e.stopImmediatePropagation();
+        swallow(e);
+        return;
+      }
+
+      const first = pending && performance.now() - pending.at < SEQUENCE_MS ? pending.combo : null;
+      pending = null;
+      if (first) {
+        const id = keymap.get(`${first} ${combo}`);
+        if (id) {
+          if (runAction(id, combo)) swallow(e);
+          return;
+        }
+      }
+      if (starts.has(combo) && !e.repeat) {
+        pending = { combo, at: performance.now() };
+        swallow(e);
         return;
       }
 
@@ -135,15 +226,10 @@ export function installShortcuts(): void {
       if (!id) return;
       if (e.repeat && !ACTION_BY_ID[id].repeat) {
         // Held toggle keys: swallow the repeats if the first press was ours.
-        if (id === 'app.help' || targetVideo(combo)) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-        }
+        if (id.startsWith('app.') || id.startsWith('post.') || id.startsWith('go.') || targetVideo(combo)) swallow(e);
         return;
       }
-      if (!run(id, combo)) return;
-      e.preventDefault();
-      e.stopImmediatePropagation();
+      if (runAction(id, combo)) swallow(e);
     },
     true,
   );

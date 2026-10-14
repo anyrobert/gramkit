@@ -57,18 +57,24 @@ const LABELS: Record<string, string> = {
   Shift: IS_MAC ? '⇧' : 'Shift',
 };
 
-/** Keycap labels for one combo, e.g. `Shift+R` → `['⇧', 'R']` on macOS. */
+/** Placed between the steps of a sequence such as `G H`; render it as text, not a keycap. */
+export const THEN = '\u2009then\u2009';
+
+/** Keycap labels for one combo, e.g. `Shift+R` → `['⇧', 'R']` on macOS, `G H` → `['G', THEN, 'H']`. */
 export function comboLabels(combo: string): string[] {
   if (combo === DIGITS) return ['0 – 9'];
-  return splitCombo(combo).map((part) => LABELS[part] ?? part);
+  return combo.split(' ').flatMap((step, i) => [...(i ? [THEN] : []), ...splitCombo(step).map((part) => LABELS[part] ?? part)]);
 }
 
 /** Keys people need for moving through a page: focus, open, go back. Never bound. */
 const RESERVED = new Set(['Tab', 'Enter', 'Backspace']);
 
 export function isReserved(combo: string): boolean {
-  return RESERVED.has(splitCombo(combo).at(-1) ?? '');
+  return combo.split(' ').some((step) => RESERVED.has(splitCombo(step).at(-1) ?? ''));
 }
+
+/** Longest gap between the keys of a sequence. */
+export const SEQUENCE_MS = 1500;
 
 export const MAX_KEYS_PER_ACTION = 8;
 const MAX_COMBO_LENGTH = 40;

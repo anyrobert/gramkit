@@ -15,7 +15,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(ROOT, 'src');
 const DIST = path.join(ROOT, 'dist');
 const WATCH = process.argv.includes('--watch');
-const { version, description } = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
+const { version } = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
 
 const NAME = 'Gramkit';
 const INSTAGRAM = 'https://www.instagram.com/*';
@@ -31,8 +31,9 @@ const base = {
   manifest_version: 3,
   name: NAME,
   version,
-  description: `${description.split('. Chrome')[0]}.`,
-  permissions: ['storage'],
+  description: '__MSG_description__',
+  default_locale: 'en',
+  permissions: ['storage', 'downloads'],
   host_permissions: [INSTAGRAM],
   icons: { 16: 'icons/icon-16.png', 32: 'icons/icon-32.png', 48: 'icons/icon-48.png', 128: 'icons/icon-128.png' },
   action: {

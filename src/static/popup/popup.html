@@ -13,36 +13,37 @@
       <img class="logo" src="../icons/icon-48.png" alt="" width="32" height="32">
       <div class="brand">
         <h1>Gramkit</h1>
-        <p>for Instagram</p>
+        <p data-i18n>for Instagram</p>
       </div>
-      <input class="switch" type="checkbox" data-setting="enabled" aria-label="Turn Gramkit on or off">
+      <input class="switch" type="checkbox" data-setting="enabled" aria-label="Turn Gramkit on or off" data-i18n-attr="aria-label">
     </header>
 
     <section class="deck dims" aria-labelledby="speed-label">
       <div class="deck-head">
-        <p class="eyebrow" id="speed-label">Speed</p>
+        <p class="eyebrow" id="speed-label" data-i18n>Speed</p>
         <p class="deck-scope" id="scope">All videos</p>
       </div>
       <div class="deck-main">
-        <button class="nudge" id="slower" type="button" aria-label="Slower">−</button>
+        <button class="nudge" id="slower" type="button" aria-label="Slower" data-i18n-attr="aria-label">−</button>
         <output class="readout" id="readout" aria-live="polite">1.00<span>×</span></output>
-        <button class="nudge" id="faster" type="button" aria-label="Faster">+</button>
+        <button class="nudge" id="faster" type="button" aria-label="Faster" data-i18n-attr="aria-label">+</button>
       </div>
-      <div class="presets" id="presets" role="group" aria-label="Speed presets"></div>
+      <div class="presets" id="presets" role="group" aria-label="Speed presets" data-i18n-attr="aria-label"></div>
     </section>
 
     <section class="dims">
-      <h2 class="eyebrow section-title">Video</h2>
+      <h2 class="eyebrow section-title" data-i18n>Video</h2>
       <div class="group" data-rows="video"></div>
     </section>
 
     <section class="dims">
-      <h2 class="eyebrow section-title">Focus</h2>
+      <h2 class="eyebrow section-title" data-i18n>Focus</h2>
       <div class="group" data-rows="focus"></div>
+      <p class="usage" id="usage" aria-live="polite"></p>
     </section>
 
     <footer class="foot">
-      <button class="btn" id="shortcuts" type="button">
+      <button class="btn" id="shortcuts" type="button" data-i18n>
         <kbd>?</kbd> Keyboard shortcuts
       </button>
       <span class="version" id="version"></span>

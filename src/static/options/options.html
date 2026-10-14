@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>Gramkit settings</title>
+  <title data-i18n>Gramkit settings</title>
   <link rel="stylesheet" href="../ui.css">
   <link rel="stylesheet" href="options.css">
 </head>
@@ -13,12 +13,12 @@
     <header class="hero">
       <img class="logo" src="../icons/icon-128.png" alt="" width="56" height="56">
       <div class="hero-text">
-        <p class="eyebrow">Gramkit for Instagram</p>
-        <h1>Instagram, <em>on your keys.</em></h1>
+        <p class="eyebrow" data-i18n>Gramkit for Instagram</p>
+        <h1 data-i18n>Instagram, <em data-i18n>on your keys.</em></h1>
       </div>
       <label class="master">
-        <span>On</span>
-        <input class="switch" type="checkbox" data-setting="enabled" aria-label="Turn Gramkit on or off">
+        <span data-i18n>On</span>
+        <input class="switch" type="checkbox" data-setting="enabled" aria-label="Turn Gramkit on or off" data-i18n-attr="aria-label">
       </label>
     </header>
 
@@ -26,24 +26,28 @@
       <section class="shortcuts dims" aria-labelledby="shortcuts-title">
         <div class="panel-head">
           <div>
-            <h2 id="shortcuts-title">Keyboard shortcuts</h2>
-            <p class="lede">Click <span class="inline-add">+</span> and press the keys. <kbd>?</kbd> on Instagram shows them.</p>
+            <h2 id="shortcuts-title" data-i18n>Keyboard shortcuts</h2>
+            <p class="lede" data-i18n>Click <span class="inline-add">+</span> and press the keys. <kbd>?</kbd> on Instagram shows them.</p>
           </div>
-          <button class="btn" id="reset-all" type="button">Reset all</button>
+          <button class="btn" id="reset-all" type="button" data-i18n>Reset all</button>
         </div>
         <div id="keymap"></div>
         <ul class="notes">
-          <li>Shortcuts never fire while you type in messages, comments or search.</li>
-          <li>Arrow keys and Space act on a video only while the pointer is over it, so they still scroll the feed and move through posts. On Reels, ↑ and ↓ still move between reels. In Stories, the arrows stay Instagram’s.</li>
+          <li data-i18n>Shortcuts never fire while you type in messages, comments or search.</li>
+          <li data-i18n>Arrow keys and Space act on a video only while the pointer is over it, so they still scroll the feed and move through posts. On Reels, ↑ and ↓ still move between reels. In Stories, the arrows stay Instagram’s.</li>
         </ul>
       </section>
 
       <aside class="side dims">
-        <h2 class="eyebrow section-title">Video</h2>
+        <h2 class="eyebrow section-title" data-i18n>Video</h2>
         <div class="group" data-rows="video"></div>
-        <h2 class="eyebrow section-title">Focus</h2>
+        <h2 class="eyebrow section-title" data-i18n>Focus</h2>
         <div class="group" data-rows="focus"></div>
-        <p class="privacy">No tracking, no account. Settings stay in your browser, and Gramkit only runs on instagram.com.</p>
+        <h2 class="eyebrow section-title" data-i18n>Time</h2>
+        <div class="group" data-rows="limits"></div>
+        <h2 class="eyebrow section-title" data-i18n>General</h2>
+        <div class="group" data-rows="general"></div>
+        <p class="privacy" data-i18n>No tracking, no account. Settings stay in your browser, and Gramkit only runs on instagram.com.</p>
       </aside>
     </div>
   </main>
