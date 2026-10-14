@@ -1,0 +1,285 @@
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('fonts/bricolage-latin.woff2') format('woff2');
+  font-weight: 200 800;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('fonts/jetbrains-mono-latin.woff2') format('woff2');
+  font-weight: 400 700;
+  font-display: block;
+}
+
+/* A warm, dim control-deck palette: soot black, cream ink, and one hot
+   amber-to-rose accent reserved for whatever is "on". */
+:root {
+  --bg: #0f0c0c;
+  --surface: #181414;
+  --surface-2: #211c1c;
+  --line: #2b2424;
+  --line-strong: #3d3434;
+  --ink: #fff7ef;
+  --ink-2: #c9bdb4;
+  --ink-3: #8c7f78;
+  --amber: #ffb547;
+  --rose: #ff4f7b;
+  --heat: linear-gradient(100deg, var(--amber), var(--rose));
+  --heat-soft: linear-gradient(100deg, rgb(255 181 71 / 0.16), rgb(255 79 123 / 0.14));
+  --on-heat: #1d0c06;
+  --radius: 16px;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --display: 'Bricolage Grotesque', ui-rounded, system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+body {
+  color: var(--ink);
+  font: 450 13px/1.4 var(--display);
+  font-variation-settings: 'opsz' 14;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+/* Grain, so the dark surfaces read as material rather than flat fill. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--ink-3);
+  font: 600 10.5px/1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Switch ------------------------------------------------------------------ */
+
+.switch {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 24px;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--line-strong);
+  appearance: none;
+  cursor: pointer;
+  transition: background 0.2s var(--ease);
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.45);
+  transition: transform 0.25s var(--ease), background 0.2s var(--ease);
+}
+
+.switch:checked {
+  background: var(--heat);
+}
+
+.switch:checked::after {
+  transform: translateX(16px);
+  background: var(--on-heat);
+}
+
+.switch:focus-visible,
+.seg input:focus-visible + span,
+.btn:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+/* Setting rows ------------------------------------------------------------- */
+
+.group {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  cursor: pointer;
+}
+
+.row + .row {
+  border-top: 1px solid var(--line);
+}
+
+.row-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.row-title {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+.row-sub {
+  display: block;
+  margin-top: 1px;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+.row.stack {
+  display: block;
+  cursor: default;
+}
+
+/* Segmented control -------------------------------------------------------- */
+
+.seg {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 3px;
+  margin-top: 9px;
+  padding: 3px;
+  border-radius: 11px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.seg label {
+  position: relative;
+  cursor: pointer;
+}
+
+.seg input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.seg span {
+  display: block;
+  padding: 7px 6px;
+  border-radius: 8px;
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  transition: background 0.18s var(--ease), color 0.18s var(--ease);
+}
+
+.seg input:checked + span {
+  background: var(--surface-2);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line-strong), 0 1px 2px rgb(0 0 0 / 0.4);
+}
+
+/* Keycaps ------------------------------------------------------------------ */
+
+kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 7px;
+  background: linear-gradient(#2e2626, #221c1c);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.1),
+    0 2px 0 #090707,
+    0 3px 8px rgb(0 0 0 / 0.35);
+  color: var(--ink);
+  font: 600 12px/1 var(--mono);
+}
+
+/* Buttons ------------------------------------------------------------------ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: transform 0.12s var(--ease), filter 0.15s var(--ease), background 0.15s var(--ease);
+}
+
+.btn:hover {
+  background: #2a2323;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn.hot {
+  background: var(--heat);
+  color: var(--on-heat);
+  box-shadow: none;
+}
+
+.btn.hot:hover {
+  filter: brightness(1.07);
+}
+
+/* Master switch off: everything else dims. */
+html[data-enabled='false'] .dims {
+  opacity: 0.42;
+  filter: saturate(0.4);
+  transition: opacity 0.25s var(--ease), filter 0.25s var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Instagram (fixture)</title>
+  <style>
+    body { margin: 0; font: 14px system-ui; background: #000; color: #fff; }
+    #mount_0_0 { display: grid; grid-template-columns: 200px 520px 260px; gap: 20px; }
+    nav a { display: block; padding: 10px; color: #fff; }
+    article { margin: 24px 0; }
+    .media { position: relative; width: 470px; height: 585px; background: #111; }
+    .media video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .overlay { position: absolute; inset: 0; }
+    .sound { position: absolute; right: 12px; bottom: 12px; width: 28px; height: 28px; border-radius: 50%; border: 0; }
+    .spacer { height: 700px; }
+  </style>
+</head>
+<body>
+  <!-- Shaped like instagram.com: a React root, links by route, videos under transparent overlays. -->
+  <div id="mount_0_0">
+    <nav>
+      <a href="/">Home</a>
+      <a href="/explore/">Explore</a>
+      <a href="/reels/">Reels</a>
+      <a href="/direct/inbox/">Messages</a>
+    </nav>
+    <main role="main">
+      <input id="search" placeholder="Search" aria-label="Search">
+      <article>
+        <div class="media" id="m1">
+          <video id="v1" playsinline loop muted></video>
+          <div class="overlay"></div>
+          <button class="sound" id="sound1" aria-label="Toggle audio"></button>
+        </div>
+      </article>
+      <div class="spacer"></div>
+      <article>
+        <div class="media" id="m2">
+          <video id="v2" playsinline loop muted></video>
+          <div class="overlay"></div>
+          <button class="sound" id="sound2" aria-label="Toggle audio"></button>
+        </div>
+      </article>
+      <div class="spacer"></div>
+    </main>
+    <aside>
+      <div id="suggestions">
+        <div class="head"><span>Suggested for you</span><a href="/explore/people/">See All</a></div>
+        <div class="list"><a href="/alice/">alice</a><a href="/bob/">bob</a><a href="/carol/">carol</a></div>
+      </div>
+      <footer id="footer"><a href="/about/">About</a></footer>
+    </aside>
+  </div>
+  <script>
+    // Instagram-like behaviour: blob sources, muted autoplay, a sound button
+    // that flips mute on its video, and play/pause by visibility.
+    (async () => {
+      const blob = await (await fetch('/__gk/clip.mp4')).blob();
+      const src = URL.createObjectURL(blob);
+      for (const v of document.querySelectorAll('video')) {
+        v.src = src;
+        v.muted = true;
+      }
+      for (const [i, b] of [...document.querySelectorAll('.sound')].entries()) {
+        b.addEventListener('click', () => {
+          const v = document.querySelectorAll('video')[i];
+          v.muted = !v.muted;
+          if (!v.muted) v.volume = 1;
+        });
+      }
+      const io = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          if (e.intersectionRatio > 0.6) e.target.play().catch(() => {});
+          else e.target.pause();
+        }
+      }, { threshold: [0, 0.6, 1] });
+      document.querySelectorAll('video').forEach((v) => io.observe(v));
+      window.fixtureReady = true;
+    })();
+  </script>
+</body>
+</html>
