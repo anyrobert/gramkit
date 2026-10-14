@@ -11,13 +11,13 @@ type Toggle = { key: keyof Settings; title: string; sub: string };
 
 const VIDEO_TOGGLES: Toggle[] = [
   { key: 'controls', title: 'Control bar', sub: 'Seek, speed and volume on hover' },
-  { key: 'speedPerSection', title: 'Speed per section', sub: 'Feed, Reels and Stories keep their own speed' },
+  { key: 'speedPerSection', title: 'Speed per section', sub: 'Own speed for feed, Reels, Stories' },
 ];
 
 const FOCUS_TOGGLES: Toggle[] = [
-  { key: 'followingFeed', title: 'Open the Following feed', sub: 'Only people you follow, newest first' },
-  { key: 'hideReels', title: 'Hide Reels', sub: 'Removes the tab and closes the Reels feed' },
-  { key: 'hideExplore', title: 'Hide Explore', sub: 'Removes the tab and closes the Explore grid' },
+  { key: 'followingFeed', title: 'Open the Following feed', sub: 'People you follow, newest first' },
+  { key: 'hideReels', title: 'Hide Reels', sub: 'No Reels tab or Reels feed' },
+  { key: 'hideExplore', title: 'Hide Explore', sub: 'No Explore tab or grid' },
   { key: 'hideSuggestions', title: 'Hide suggested accounts', sub: '“Suggested for you” lists' },
 ];
 
@@ -44,7 +44,7 @@ function toggleRow({ key, title, sub }: Toggle): HTMLLabelElement {
 function soundRow(): HTMLDivElement {
   const row = document.createElement('div');
   row.className = 'row stack';
-  row.innerHTML = `<span class="row-title">Sound</span><span class="row-sub">Instagram mutes every video. Remember keeps your last choice; Always on unmutes each one.</span><div class="seg" role="radiogroup" aria-label="Sound"></div>`;
+  row.innerHTML = `<span class="row-title">Sound</span><span class="row-sub">Start muted, as you left it, or with sound</span><div class="seg" role="radiogroup" aria-label="Sound"></div>`;
   const seg = row.querySelector('.seg')!;
   for (const { value, label } of AUDIO_MODES) {
     const option = document.createElement('label');
