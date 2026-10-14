@@ -446,6 +446,17 @@ try {
     }
     check('speed sticks through 8 fast reel changes on one reused <video>', reelRates.every((r) => r === 1.5), reelRates);
 
+    const fight = await page.evaluate(async () => {
+      const v = document.getElementById('v1');
+      const id = setInterval(() => (v.playbackRate = 1), 50);
+      await new Promise((r) => setTimeout(r, 1500));
+      clearInterval(id);
+      const during = v.playbackRate;
+      await new Promise((r) => setTimeout(r, 5000));
+      return { during, after: v.playbackRate };
+    });
+    check('when Instagram stops fighting the speed, it comes back on its own', fight.during === 1 && fight.after === 1.5, fight);
+
     const ime = await page.evaluate(async () => {
       const v = document.getElementById('v1');
       const played = await v.play().then(() => 'ok', (e) => e.message);

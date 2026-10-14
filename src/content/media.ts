@@ -16,7 +16,8 @@ const muteOverride = new WeakMap<HTMLVideoElement, boolean>();
 /**
  * Corrections per video, counted separately for speed and sound. When Instagram
  * keeps resetting a value, we stop correcting it for a while instead of
- * looping; a new source (Instagram reuses <video> elements) starts over.
+ * looping, then put our value back once; a new source (Instagram reuses
+ * <video> elements) starts over.
  */
 type Fight = { count: number; since: number; pausedUntil: number };
 const fights = { rate: new WeakMap<HTMLVideoElement, Fight>(), audio: new WeakMap<HTMLVideoElement, Fight>() };
@@ -34,19 +35,18 @@ function hasUserActivation(): boolean {
   return navigator.userActivation?.hasBeenActive ?? true;
 }
 
-function fightBack(video: HTMLVideoElement, kind: keyof typeof fights): boolean {
+function correct(video: HTMLVideoElement, kind: keyof typeof fights, apply: (video: HTMLVideoElement) => void): void {
   const now = performance.now();
   const f = fights[kind].get(video);
-  if (f && now < f.pausedUntil) return false;
+  if (f && now < f.pausedUntil) return;
   if (!f || now - f.since > FIGHT_WINDOW_MS) {
     fights[kind].set(video, { count: 1, since: now, pausedUntil: 0 });
-    return true;
-  }
-  if (++f.count > FIGHT_LIMIT) {
+  } else if (++f.count > FIGHT_LIMIT) {
     f.pausedUntil = now + FIGHT_PAUSE_MS;
-    return false;
+    setTimeout(() => video.isConnected && apply(video), FIGHT_PAUSE_MS);
+    return;
   }
-  return true;
+  apply(video);
 }
 
 /** True when the last click landed on this video (Instagram's own sound button, its slider) or its native controls are in use. */
@@ -93,7 +93,7 @@ function onRateChange(video: HTMLVideoElement): void {
     setSpeed(video.playbackRate);
     return;
   }
-  if (fightBack(video, 'rate')) applySpeed(video);
+  correct(video, 'rate', applySpeed);
 }
 
 function onVolumeChange(video: HTMLVideoElement): void {
@@ -114,7 +114,7 @@ function onVolumeChange(video: HTMLVideoElement): void {
     applyAudio(video);
     return;
   }
-  if (fightBack(video, 'audio')) applyAudio(video);
+  correct(video, 'audio', applyAudio);
 }
 
 export function setSpeed(rate: number): void {
