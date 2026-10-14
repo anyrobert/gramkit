@@ -1,5 +1,6 @@
 import { api } from './browser';
 import type { Keymap } from './actions';
+import { cleanKeymap } from './keys';
 
 export type AudioMode = 'instagram' | 'unmute' | 'remember';
 export type Section = 'feed' | 'reels' | 'stories';
@@ -77,9 +78,53 @@ export function withSpeed(settings: Settings, playback: Playback, section: Secti
   return settings.speedPerSection ? { speeds: { ...playback.speeds, [section]: rate } } : { speed: rate };
 }
 
+// Storage can hold anything: an older or newer version's shape, or another
+// device's sync. Every read goes through these, so the rest of the code can
+// trust the types.
+type Stored = Record<string, unknown>;
+const AUDIO_MODES: readonly AudioMode[] = ['instagram', 'unmute', 'remember'];
+
+const asObject = (value: unknown): Stored =>
+  typeof value === 'object' && value !== null && !Array.isArray(value) ? (value as Stored) : {};
+const bool = (value: unknown, fallback: boolean) => (typeof value === 'boolean' ? value : fallback);
+const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
+const speedOr = (value: unknown, fallback: number) => (finite(value) ? clampSpeed(value) : fallback);
+
+export function cleanSettings(raw: unknown): Settings {
+  const s = asObject(raw);
+  const d = DEFAULT_SETTINGS;
+  return {
+    enabled: bool(s.enabled, d.enabled),
+    controls: bool(s.controls, d.controls),
+    audioMode: AUDIO_MODES.includes(s.audioMode as AudioMode) ? (s.audioMode as AudioMode) : d.audioMode,
+    speedPerSection: bool(s.speedPerSection, d.speedPerSection),
+    followingFeed: bool(s.followingFeed, d.followingFeed),
+    hideReels: bool(s.hideReels, d.hideReels),
+    hideExplore: bool(s.hideExplore, d.hideExplore),
+    hideSuggestions: bool(s.hideSuggestions, d.hideSuggestions),
+    keymap: cleanKeymap(s.keymap),
+  };
+}
+
+export function cleanPlayback(raw: unknown): Playback {
+  const p = asObject(raw);
+  const speeds = asObject(p.speeds);
+  const d = DEFAULT_PLAYBACK;
+  return {
+    speed: speedOr(p.speed, d.speed),
+    speeds: {
+      feed: speedOr(speeds.feed, d.speeds.feed),
+      reels: speedOr(speeds.reels, d.speeds.reels),
+      stories: speedOr(speeds.stories, d.speeds.stories),
+    },
+    volume: finite(p.volume) ? Math.min(1, Math.max(0, p.volume)) : d.volume,
+    muted: bool(p.muted, d.muted),
+  };
+}
+
 export async function loadSettings(): Promise<Settings> {
   const { settings } = await api.storage.sync.get('settings');
-  return { ...DEFAULT_SETTINGS, ...(settings as Partial<Settings> | undefined) };
+  return cleanSettings(settings);
 }
 
 export async function saveSettings(patch: Partial<Settings>): Promise<Settings> {
@@ -90,8 +135,7 @@ export async function saveSettings(patch: Partial<Settings>): Promise<Settings> 
 
 export async function loadPlayback(): Promise<Playback> {
   const { playback } = await api.storage.local.get('playback');
-  const stored = playback as Partial<Playback> | undefined;
-  return { ...DEFAULT_PLAYBACK, ...stored, speeds: { ...DEFAULT_PLAYBACK.speeds, ...stored?.speeds } };
+  return cleanPlayback(playback);
 }
 
 export async function savePlayback(playback: Playback): Promise<void> {
@@ -100,14 +144,12 @@ export async function savePlayback(playback: Playback): Promise<void> {
 
 export function onSettingsChange(cb: (settings: Settings) => void): void {
   api.storage.onChanged.addListener((changes, area) => {
-    if (area === 'sync' && changes.settings) cb({ ...DEFAULT_SETTINGS, ...(changes.settings.newValue as Partial<Settings>) });
+    if (area === 'sync' && changes.settings) cb(cleanSettings(changes.settings.newValue));
   });
 }
 
 export function onPlaybackChange(cb: (playback: Playback) => void): void {
   api.storage.onChanged.addListener((changes, area) => {
-    if (area !== 'local' || !changes.playback) return;
-    const stored = changes.playback.newValue as Partial<Playback>;
-    cb({ ...DEFAULT_PLAYBACK, ...stored, speeds: { ...DEFAULT_PLAYBACK.speeds, ...stored?.speeds } });
+    if (area === 'local' && changes.playback) cb(cleanPlayback(changes.playback.newValue));
   });
 }

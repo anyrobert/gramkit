@@ -1,4 +1,4 @@
-import { DIGITS } from './actions';
+import { ACTION_BY_ID, DIGITS, type ActionId, type Keymap } from './actions';
 
 const MODIFIERS = new Set(['Shift', 'Control', 'Alt', 'AltGraph', 'Meta', 'OS', 'CapsLock', 'Fn', 'Hyper', 'Super']);
 
@@ -59,6 +59,21 @@ const LABELS: Record<string, string> = {
 export function comboLabels(combo: string): string[] {
   if (combo === DIGITS) return ['0 – 9'];
   return splitCombo(combo).map((part) => LABELS[part] ?? part);
+}
+
+export const MAX_KEYS_PER_ACTION = 8;
+const MAX_COMBO_LENGTH = 40;
+
+/** A keymap as stored, possibly from another version or device: keeps only known actions and plausible combos. */
+export function cleanKeymap(raw: unknown): Keymap {
+  const keymap: Keymap = {};
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return keymap;
+  for (const [id, keys] of Object.entries(raw)) {
+    if (!Object.hasOwn(ACTION_BY_ID, id) || !Array.isArray(keys)) continue;
+    const combos = keys.filter((k): k is string => typeof k === 'string' && k.length > 0 && k.length <= MAX_COMBO_LENGTH);
+    keymap[id as ActionId] = [...new Set(combos)].slice(0, MAX_KEYS_PER_ACTION);
+  }
+  return keymap;
 }
 
 /** Keys that Instagram or the page also use; video shortcuts only take them in some places. */

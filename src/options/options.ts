@@ -1,5 +1,5 @@
 import { ACTIONS, ACTION_BY_ID, DIGITS, GROUPS, keysFor, type ActionId, type Keymap } from '../shared/actions';
-import { comboFromEvent, comboLabels } from '../shared/keys';
+import { comboFromEvent, comboLabels, MAX_KEYS_PER_ACTION } from '../shared/keys';
 import { loadSettings, onSettingsChange, saveSettings, type Settings } from '../shared/settings';
 import { $, bindSettings, buildRows, renderSettings } from '../shared/ui';
 
@@ -92,7 +92,7 @@ function row(id: ActionId): HTMLElement {
     }
     if (id === 'video.jump') {
       if (!keys.includes(DIGITS)) right.append(button('add', '+', 'Use the number keys', () => void saveKeymap({ ...settings.keymap, [id]: [DIGITS] })));
-    } else {
+    } else if (keys.length < MAX_KEYS_PER_ACTION) {
       right.append(
         button('add', '+', `Add a shortcut for ${action.label}`, () => {
           capturing = id;
