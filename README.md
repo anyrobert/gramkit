@@ -4,6 +4,8 @@ Instagram on the web has no speed control, no seek bar, no volume slider, no dow
 
 Works in Chrome (and other Chromium browsers) and in Zen and Firefox, from one shared codebase.
 
+<p><img src="docs/demo.gif" width="480" alt="Speeding up a reel with the &gt; key, dragging the seek bar and skipping with J and L"></p>
+
 <p>
   <img src="docs/popup.png" width="260" alt="Popup with the speed deck, video and focus settings">
   <img src="docs/bar.png" width="260" alt="Control bar on a reel">
@@ -123,6 +125,7 @@ npm run lint         # web-ext lint on the Firefox build
 npm run icons        # re-render icons from src/static/icons/icon.svg (uses Chrome)
 npm start            # Zen with the extension in a temporary profile
 npm run start:chrome # Chrome, same
+npm run marketing    # store images, demo GIF and vertical video into dist/marketing/
 ```
 
 `scripts/build.mjs` bundles `src/` with esbuild and writes each browser's manifest; Chrome gets a service worker, Firefox an event page. Everything else is shared.
@@ -130,9 +133,13 @@ npm run start:chrome # Chrome, same
 ### Tests
 
 ```sh
-npm run e2e                     # Chrome: 87 checks
-npm run e2e -- --browser=zen    # Zen: the 45 that don't change settings
+npm run e2e                     # Chrome: 89 checks
+npm run e2e -- --browser=zen    # Zen: the 49 that don't change settings
 node test/live.mjs [reel URL]   # smoke check on live instagram.com, logged out
 ```
 
 `test/e2e.mjs` loads the built extension in a real browser and answers every `www.instagram.com` request with `test/fixture.html`, a page shaped like Instagram: blob video sources, transparent overlays, a speaker button that flips mute, play/pause by visibility, like and save buttons that flip their label, and a carousel. A local server stands in for Instagram's CDN and the media API. It covers speed, sound, seeking, frames, shortcuts and sequences, posts, the palette, downloads (post, carousel, story, frame), typing safety, the bar, rebinding, the focus switches, Messages only, focus hours, the time limit, Portuguese, the master switch, the popup and the options page. Screenshots go to `dist/screenshots/`.
+
+### Marketing assets
+
+`scripts/marketing.mjs` renders a sample reel we own (`marketing/clip.html`), plays it on an Instagram-shaped stage (`marketing/stage.html`) with the real extension loaded, and records it. Out come the Chrome Web Store / AMO screenshots and promo tiles (`dist/marketing/store/`), `demo.gif` and a 1080×1920 `vertical.mp4` for TikTok, Reels and Shorts. Needs Chrome and ffmpeg. `--only=clips,shots,vertical,gif,compose` runs single steps; `HEADED=1` shows the browser.
