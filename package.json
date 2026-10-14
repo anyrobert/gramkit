@@ -1,6 +1,6 @@
 {
   "name": "gramkit",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Video speed, seek and volume controls, keyboard shortcuts, downloads and focus tools for Instagram on the web. Chrome, Zen and Firefox.",
   "license": "MIT",
@@ -14,7 +14,8 @@
     "start": "npm run build && web-ext run --source-dir dist/firefox --firefox /Applications/Zen.app/Contents/MacOS/zen --start-url https://www.instagram.com/",
     "start:chrome": "npm run build && web-ext run --target chromium --source-dir dist/chrome --start-url https://www.instagram.com/",
     "e2e": "npm run build && node test/e2e.mjs",
-    "marketing": "node scripts/marketing.mjs"
+    "marketing": "node scripts/marketing.mjs",
+    "source": "node scripts/source.mjs"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.0",
