@@ -373,6 +373,104 @@ try {
       const { settings } = await chrome.storage.sync.get('settings');
       await chrome.storage.sync.set({ settings: { ...settings, keymap: {} } });
     });
+
+    await options.$eval('.km-row .add', (b) => b.click());
+    await sleep(100);
+    await options.keyboard.press('Tab');
+    await options.keyboard.press('Enter');
+    await sleep(200);
+    const afterReserved = await options.evaluate(async () => ({
+      keymap: (await chrome.storage.sync.get('settings')).settings.keymap,
+      capturing: !!document.querySelector('.capture'),
+    }));
+    check('Tab and Enter cannot be bound', Object.keys(afterReserved.keymap).length === 0 && afterReserved.capturing, afterReserved);
+    await options.keyboard.press('Escape');
+
+    // Hostile input ---------------------------------------------------------------
+    const pageErrors = [];
+    page.on('pageerror', (e) => pageErrors.push(e.message));
+    const writeStorage = (area, value) => extPage.evaluate((area, value) => chrome.storage[area].set(value), area, value);
+
+    await writeStorage('sync', { settings: { enabled: 'false', audioMode: 'loud', keymap: { 'video.forward10': 5, 'speed.up': null, 'not.real': ['Q'], 'speed.down': ['<'.repeat(300)] } } });
+    await writeStorage('local', { playback: { speed: null, speeds: { feed: '2' }, volume: 2, muted: 'no' } });
+    await page.bringToFront();
+    await page.goto('https://www.instagram.com/');
+    await page.waitForFunction(() => window.fixtureReady, { timeout: 15000 });
+    await until(async () => !(await video('v1')).paused);
+    await hover('v1');
+    const corruptBar = await until(() => page.evaluate(() => !!document.querySelector('gramkit-hud').shadowRoot.querySelector('.bar.show')));
+    await page.evaluate(() => (document.getElementById('v1').currentTime = 2));
+    await press('KeyL');
+    await press('>');
+    const corrupt = await video('v1');
+    check(
+      'corrupt storage falls back to defaults and nothing throws',
+      corruptBar && corrupt.rate === 1.25 && corrupt.time > 10 && pageErrors.length === 0,
+      { corruptBar, corrupt, pageErrors: pageErrors.slice(0, 2) },
+    );
+    const corruptOptions = await browser.newPage();
+    const optionErrors = [];
+    corruptOptions.on('pageerror', (e) => optionErrors.push(e.message));
+    await corruptOptions.goto(`chrome-extension://${extensionId}/options/options.html`);
+    await sleep(500);
+    const optionRows = await corruptOptions.$$eval('.km-row', (rows) => rows.length);
+    check('options page renders with corrupt storage', optionErrors.length === 0 && optionRows > 10, { optionErrors, optionRows });
+    await corruptOptions.close();
+    await writeStorage('sync', { settings: {} });
+    await writeStorage('local', { playback: {} });
+
+    await page.bringToFront();
+    await page.goto('https://www.instagram.com/reels/abc/');
+    await page.waitForFunction(() => window.fixtureReady, { timeout: 15000 });
+    await page.keyboard.press('Shift');
+    await hover('v1');
+    await press('>');
+    await press('>');
+    const reelRates = [];
+    for (let i = 0; i < 8; i++) {
+      reelRates.push(
+        await page.evaluate(async () => {
+          const v = document.getElementById('v1');
+          const src = v.src;
+          v.src = '';
+          v.src = src;
+          await new Promise((r) => v.addEventListener('loadedmetadata', r, { once: true }));
+          await v.play().catch(() => {});
+          v.playbackRate = 1;
+          v.muted = true;
+          v.volume = 1;
+          await new Promise((r) => setTimeout(r, 60));
+          return v.playbackRate;
+        }),
+      );
+    }
+    check('speed sticks through 8 fast reel changes on one reused <video>', reelRates.every((r) => r === 1.5), reelRates);
+
+    const ime = await page.evaluate(async () => {
+      const v = document.getElementById('v1');
+      const played = await v.play().then(() => 'ok', (e) => e.message);
+      const pausedBefore = v.paused;
+      document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Process', code: 'KeyK', keyCode: 229, bubbles: true, cancelable: true }));
+      await new Promise((r) => setTimeout(r, 100));
+      return { played, pausedBefore, paused: v.paused };
+    });
+    check('an IME keydown on the K key does not pause', !ime.pausedBefore && !ime.paused, ime);
+
+    await page.evaluate(() => {
+      const host = document.createElement('div');
+      const root = host.attachShadow({ mode: 'closed' });
+      root.innerHTML = '<input placeholder="closed shadow input">';
+      document.querySelector('main').prepend(host);
+      root.querySelector('input').focus({ preventScroll: true });
+    });
+    const beforeShadow = await video('v1');
+    await page.keyboard.type('k>m');
+    const afterShadow = await video('v1');
+    check(
+      'typing in an input inside a closed shadow root triggers nothing',
+      afterShadow.paused === beforeShadow.paused && afterShadow.rate === beforeShadow.rate && afterShadow.muted === beforeShadow.muted,
+      { beforeShadow, afterShadow },
+    );
   }
 } finally {
   await browser.close();
