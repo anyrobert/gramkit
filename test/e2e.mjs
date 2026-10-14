@@ -400,6 +400,20 @@ try {
   await page.keyboard.press('Escape');
   await sleep(100);
   check('Esc closes the palette', (await palette()) === null);
+  const openPalette = async () => {
+    await page.keyboard.down('Control');
+    await page.keyboard.press('KeyK');
+    await page.keyboard.up('Control');
+    await sleep(200);
+  };
+  await openPalette();
+  await page.evaluate(() => document.getElementById('search').focus());
+  await page.keyboard.press('Escape');
+  await sleep(100);
+  check('Esc closes the palette after focus moved to the page', (await palette()) === null);
+  await openPalette();
+  await openPalette();
+  check('Ctrl+K again closes it', (await palette()) === null);
   await page.keyboard.down('Control');
   await page.keyboard.press('KeyK');
   await page.keyboard.up('Control');

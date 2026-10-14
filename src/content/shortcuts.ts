@@ -21,7 +21,7 @@ import {
 } from './commands';
 import { closeHelp, isHelpOpen, toggleHelp } from './hud';
 import { goTo } from './nav';
-import { togglePalette } from './palette';
+import { closePalette, isPaletteOpen, togglePalette } from './palette';
 import {
   downloadCurrent,
   openComments,
@@ -197,6 +197,22 @@ export function installShortcuts(): void {
   window.addEventListener(
     'keydown',
     (e) => {
+      // The palette closes from anywhere, even when focus has left its input,
+      // and Ctrl/⌘ combos open it from text fields too.
+      if (store.settings.enabled && !e.isComposing) {
+        const combo = comboFromEvent(e);
+        const paletteKey = !!combo && keymap.get(combo) === 'app.palette';
+        if (isPaletteOpen() && (combo === 'Escape' || paletteKey)) {
+          closePalette();
+          swallow(e);
+          return;
+        }
+        if (paletteKey && (e.ctrlKey || e.metaKey) && isTyping(e)) {
+          togglePalette(runAction);
+          swallow(e);
+          return;
+        }
+      }
       if (!store.settings.enabled || e.isComposing || isTyping(e)) return;
       const combo = comboFromEvent(e);
       if (!combo) return;

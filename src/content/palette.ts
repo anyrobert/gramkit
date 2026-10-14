@@ -166,8 +166,10 @@ function open(run: (id: ActionId) => boolean, recent: string[]): void {
   });
   input.addEventListener('keydown', (e) => {
     e.stopPropagation();
-    if (e.key === 'Escape') closePalette();
-    else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closePalette();
+    } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
       const n = shown.length || 1;
       active = (active + (e.key === 'ArrowDown' ? 1 : n - 1)) % n;
