@@ -3,6 +3,7 @@
 // actually did something with it.
 
 import { ACTION_BY_ID, DIGITS, resolveKeymap, type ActionId } from '../shared/actions';
+import { api } from '../shared/browser';
 import { CONTESTED, comboFromEvent, isDigitCombo } from '../shared/keys';
 import { sectionOf } from '../shared/settings';
 import {
@@ -23,8 +24,22 @@ import { activeVideo, hoveredVideo } from './videos';
 const TEXT_INPUT =
   'input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]), textarea, select, [role=textbox], [role=combobox], [role=searchbox]';
 
+/** Content scripts may look inside closed shadow roots: Chrome through `chrome.dom`, Firefox through a property. */
+function shadowOf(el: HTMLElement): ShadowRoot | null {
+  return (
+    api.dom?.openOrClosedShadowRoot?.(el) ??
+    (el as { openOrClosedShadowRoot?: ShadowRoot | null }).openOrClosedShadowRoot ??
+    el.shadowRoot
+  );
+}
+
 function isTyping(e: KeyboardEvent): boolean {
-  const target = e.composedPath()[0];
+  let target = e.composedPath()[0];
+  for (let depth = 0; target instanceof HTMLElement && depth < 8; depth++) {
+    const inner = shadowOf(target)?.activeElement;
+    if (!inner || inner === target) break;
+    target = inner;
+  }
   if (!(target instanceof HTMLElement)) return false;
   return target.isContentEditable || target.matches(TEXT_INPUT);
 }
