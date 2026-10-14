@@ -1,6 +1,8 @@
 import { ACTION_BY_ID, DIGITS, type ActionId, type Keymap } from './actions';
 
 const MODIFIERS = new Set(['Shift', 'Control', 'Alt', 'AltGraph', 'Meta', 'OS', 'CapsLock', 'Fn', 'Hyper', 'Super']);
+/** An input method editor or a dead key is still building a character; the key isn't the user's yet. */
+const NOT_A_KEY = new Set(['Process', 'Dead', 'Unidentified']);
 
 /**
  * Normalizes a key press to a combo such as `K`, `Shift+R`, `>`, `ArrowLeft` or `Ctrl+Shift+K`.
@@ -10,7 +12,7 @@ const MODIFIERS = new Set(['Shift', 'Control', 'Alt', 'AltGraph', 'Meta', 'OS', 
  * for them; that keeps bindings working across keyboard layouts.
  */
 export function comboFromEvent(e: KeyboardEvent): string | null {
-  if (MODIFIERS.has(e.key)) return null;
+  if (MODIFIERS.has(e.key) || NOT_A_KEY.has(e.key) || e.isComposing) return null;
   let key = e.key;
   const letter = /^Key([A-Z])$/.exec(e.code)?.[1];
   // Option on macOS and non-Latin layouts turn letters into other characters.
