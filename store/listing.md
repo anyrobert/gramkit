@@ -143,6 +143,8 @@ Certify all three:
 ## addons.mozilla.org (Firefox, Zen)
 
 **Package:** `dist/gramkit-firefox-<version>.xpi`
+**Submit from the terminal:** `WEB_EXT_API_KEY=… WEB_EXT_API_SECRET=… npm run submit:firefox` builds, packs the source and uploads both with `store/amo-metadata.json` (summary, description in English and Portuguese, categories, homepage, support, license). Screenshots, the privacy policy and the support email still go in the AMO dashboard after.
+
 **Source code:** `dist/gramkit-source-<version>.zip` (answer **Yes** to "Do you need to submit source code?", since the build bundles TypeScript with esbuild)
 
 ### Listing
