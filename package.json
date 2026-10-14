@@ -16,7 +16,7 @@
     "e2e": "npm run build && node test/e2e.mjs",
     "marketing": "node scripts/marketing.mjs",
     "source": "node scripts/source.mjs",
-    "submit:firefox": "npm run build && npm run source && web-ext sign --channel listed --source-dir dist/firefox --upload-source-code dist/gramkit-source-$npm_package_version.zip --amo-metadata store/amo-metadata.json"
+    "submit:firefox": "npm run build && npm run source && web-ext sign --channel listed --source-dir dist/firefox --upload-source-code dist/gramkit-source-$npm_package_version.zip --amo-metadata store/amo-metadata.json --approval-timeout 0"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.0",
