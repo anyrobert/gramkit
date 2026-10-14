@@ -3,6 +3,7 @@
 // (marketing/clip.html). Everything lands in dist/marketing/:
 //
 //   store/screenshot-1…5.png   Chrome Web Store / AMO screenshots, 1280×800
+//   store/store-icon-128.png   128×128 store icon (96×96 art, 16 px transparent padding)
 //   store/promo-small.png      440×280 small promo tile
 //   store/promo-marquee.png    1400×560 marquee
 //   demo.gif                   README / landing GIF
@@ -423,6 +424,7 @@ if (runs('compose')) {
       <div class="chrome"><i></i><i></i><i></i><span>Gramkit settings</span></div>
       <div style="height:100%;background:url(${img('options.png')}) left top/100% auto no-repeat"></div>
     </div>`);
+  fs.copyFileSync(path.join(ROOT, 'src/static/icons/icon-128.png'), path.join(STORE, 'store-icon-128.png'));
   await render('promo-small.png', 440, 280, `
     <div style="padding:34px 34px 0">
       <div class="brand"><img src="${icon}">Gramkit</div>
