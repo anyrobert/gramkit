@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gramkit: speed, seek and shortcuts for Instagram on the web</title>
+    <meta name="description" content="Free browser extension that adds a speed button, a real seek bar, volume, keyboard shortcuts, downloads and focus tools to Instagram on the web. No account, no tracking.">
+    <meta name="theme-color" content="#0f0c0c">
+    <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+    <link rel="canonical" href="https://anyrobert.github.io/gramkit/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Instagram finally has a speed button">
+    <meta property="og:description" content="Speed, seek bar, volume, keyboard shortcuts, downloads and focus tools for Instagram on the web. Free, no account, no tracking.">
+    <meta property="og:url" content="https://anyrobert.github.io/gramkit/">
+    <meta property="og:image" content="https://anyrobert.github.io/gramkit/assets/og.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="preload" href="assets/bricolage-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="site.css">
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap">
+        <a class="brand" href="./"><img src="assets/icon.svg" alt=""> Gramkit</a>
+        <nav>
+          <a href="#keys">Shortcuts</a>
+          <a href="#features">Features</a>
+          <a href="privacy.html">Privacy</a>
+          <a href="https://github.com/anyrobert/gramkit">GitHub</a>
+          <a class="btn small hot" href="#install">Install</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="wrap">
+          <div>
+            <p class="eyebrow rise">Free extension for Chrome, Firefox and Zen</p>
+            <h1 class="rise">Instagram finally has a <span class="heat">speed button.</span></h1>
+            <p class="lede rise">And a seek bar, a volume slider, downloads, keyboard shortcuts and a daily limit that actually stops you. For Instagram on the web.</p>
+            <div class="ctas rise" id="install">
+              <a class="btn hot" data-store="chrome" href="https://github.com/anyrobert/gramkit/releases/latest">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
+                Add to Chrome
+              </a>
+              <a class="btn" data-store="firefox" href="https://github.com/anyrobert/gramkit/releases/latest">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
+                Firefox &amp; Zen
+              </a>
+            </div>
+            <p class="fine rise">Also Edge, Brave and Arc. No account. No tracking. Open source.</p>
+            <div class="try rise" aria-live="polite">
+              <span>Try it, press</span>
+              <button class="key" type="button" data-step="-1" aria-label="Slower">&lt;</button>
+              <button class="key" type="button" data-step="1" aria-label="Faster">&gt;</button>
+              <span class="readout" id="speed">1×</span>
+            </div>
+          </div>
+          <div class="stage rise">
+            <div class="frame">
+              <img src="demo.gif" width="480" height="513" alt="A reel on Instagram speeding up with the > key, then the seek bar being dragged and J and L skipping 10 seconds">
+            </div>
+            <div class="chip"><b>0.25–4×</b>sticks across videos</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="ticker" aria-hidden="true">
+        <div>
+          <span>Speed 0.25–4×</span><span>Seek bar</span><span>Volume</span><span>Downloads</span><span>Frame by frame</span><span>⌘K palette</span><span>Following feed</span><span>Messages only</span><span>Daily limit</span><span>Português</span>
+          <span>Speed 0.25–4×</span><span>Seek bar</span><span>Volume</span><span>Downloads</span><span>Frame by frame</span><span>⌘K palette</span><span>Following feed</span><span>Messages only</span><span>Daily limit</span><span>Português</span>
+        </div>
+      </div>
+
+      <section id="keys">
+        <div class="wrap">
+          <p class="eyebrow">Keyboard</p>
+          <h2>YouTube keys. <span class="heat">On Instagram.</span></h2>
+          <p class="section-lede">The shortcuts your hands already know, plus Gmail-style jumps between pages. Every one can be rebound, and none fire while you type a message. Press any of these right here.</p>
+          <ul class="keys">
+            <li data-keys="k space"><span class="caps"><kbd class="key">K</kbd></span>Play / pause</li>
+            <li data-keys="j l"><span class="caps"><kbd class="key">J</kbd><kbd class="key">L</kbd></span>Back / forward 10 s</li>
+            <li data-keys="&lt; &gt;"><span class="caps"><kbd class="key">&lt;</kbd><kbd class="key">&gt;</kbd></span>Slower / faster</li>
+            <li data-keys="0 1 2 3 4 5 6 7 8 9"><span class="caps"><kbd class="key">0</kbd>–<kbd class="key">9</kbd></span>Jump to 0–90%</li>
+            <li data-keys="m"><span class="caps"><kbd class="key">M</kbd></span>Mute</li>
+            <li data-keys="f p"><span class="caps"><kbd class="key">F</kbd><kbd class="key">P</kbd></span>Fullscreen / picture-in-picture</li>
+            <li data-keys=", ."><span class="caps"><kbd class="key">,</kbd><kbd class="key">.</kbd></span>Frame by frame</li>
+            <li data-keys="J K"><span class="caps"><kbd class="key">⇧J</kbd><kbd class="key">⇧K</kbd></span>Next / previous post</li>
+            <li data-keys="L B"><span class="caps"><kbd class="key">⇧L</kbd><kbd class="key">⇧B</kbd></span>Like / save</li>
+            <li data-keys="D"><span class="caps"><kbd class="key">⇧D</kbd></span>Download post, reel or story</li>
+            <li data-keys="g"><span class="caps"><kbd class="key">G</kbd><kbd class="key">H</kbd></span>Go home (also M, E, R, P, S)</li>
+            <li data-keys="/"><span class="caps"><kbd class="key">/</kbd></span>Search</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="features">
+        <div class="wrap">
+          <div class="row">
+            <div class="copy">
+              <p class="eyebrow">Command palette</p>
+              <h3>Everything on ⌘K.</h3>
+              <p>Every action, page and setting by name. Speed presets, profiles you opened lately, <span class="mono">@name</span> to jump to anyone, and anything else searches Instagram.</p>
+            </div>
+            <img class="shot" src="assets/palette.webp" width="1280" height="800" loading="lazy" alt="Command palette open over the feed with actions and recent profiles">
+          </div>
+          <div class="row">
+            <div class="copy">
+              <p class="eyebrow">Focus</p>
+              <h3>A time limit that actually stops you.</h3>
+              <p>Pick 15 minutes to 2 hours a day. Past it, a full-screen card covers everything except your messages. Time only counts while Instagram is in front.</p>
+              <p>Or go further: open the Following feed instead of Home, hide Reels and Explore, or switch to Messages only during focus hours.</p>
+            </div>
+            <img class="shot" src="assets/limit.webp" width="1280" height="800" loading="lazy" alt="Daily limit card covering the feed with a 5 more minutes button">
+          </div>
+          <div class="row">
+            <div class="copy">
+              <p class="eyebrow">Shortcuts</p>
+              <h3>Press ? to see them all.</h3>
+              <p>A cheat sheet over the page, any time. Rebind anything in the settings, including two-key sequences like <kbd class="key">G</kbd> <kbd class="key">M</kbd>.</p>
+            </div>
+            <img class="shot" src="assets/help.webp" width="1280" height="800" loading="lazy" alt="Keyboard shortcut overlay listing every key">
+          </div>
+          <div class="row">
+            <div class="copy">
+              <p class="eyebrow">Settings</p>
+              <h3>Free. No account. No tracking.</h3>
+              <p>Speed presets and switches in the toolbar popup, everything else in a settings page. In English or Brazilian Portuguese.</p>
+            </div>
+            <img class="shot" src="assets/options.webp" width="1280" height="976" loading="lazy" alt="The Gramkit settings page">
+          </div>
+
+          <ul class="bits">
+            <li><b>Sound that stays put</b><span>No more re-muting on every scroll. Your volume level is kept too.</span></li>
+            <li><b>Downloads</b><span>Posts, every slide of a carousel, reels and stories, at the best quality Instagram has.</span></li>
+            <li><b>Real seek bar</b><span>Drag, preview the time, see what's buffered. Scroll the speed chip to change speed.</span></li>
+            <li><b>Autoplay off</b><span>Videos in the feed wait for you. Loop, stop or skip to the next reel when one ends.</span></li>
+            <li><b>Save a frame</b><span>Step frame by frame with , and . then save the exact one as a PNG.</span></li>
+            <li><b>Speed per section</b><span>One speed for the feed, another for Reels and Stories, if you like.</span></li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="promise">
+        <div class="wrap">
+          <p class="eyebrow">Privacy</p>
+          <h2>Your feed is <span class="heat">your business.</span></h2>
+          <p class="section-lede">No analytics, no account, no servers of ours. Settings live in your browser. The only requests go to instagram.com, when you ask for a download.</p>
+          <div class="ctas">
+            <a class="btn hot" href="#install">Install Gramkit</a>
+            <a class="btn" href="privacy.html">Read the privacy policy</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <a class="brand" href="./"><img src="assets/icon.svg" alt=""> Gramkit</a>
+        <nav>
+          <a href="https://github.com/anyrobert/gramkit">GitHub</a>
+          <a href="privacy.html">Privacy</a>
+          <a href="https://github.com/anyrobert/gramkit/issues">Support</a>
+        </nav>
+        <span class="legal">MIT licensed. Not affiliated with Instagram or Meta.</span>
+      </div>
+    </footer>
+
+    <script>
+      const SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3, 3.5, 4];
+      let speed = 3;
+      const readout = document.getElementById('speed');
+      const stepper = { '<': document.querySelector('[data-step="-1"]'), '>': document.querySelector('[data-step="1"]') };
+
+      function step(by) {
+        speed = Math.min(SPEEDS.length - 1, Math.max(0, speed + by));
+        readout.textContent = `${SPEEDS[speed]}×`;
+        readout.classList.remove('bump');
+        void readout.offsetWidth;
+        readout.classList.add('bump');
+      }
+
+      function press(el) {
+        el.classList.add('down');
+        setTimeout(() => el.classList.remove('down'), 140);
+      }
+
+      for (const [label, el] of Object.entries(stepper)) {
+        el.addEventListener('click', () => {
+          press(el);
+          step(label === '>' ? 1 : -1);
+        });
+      }
+
+      const rows = [...document.querySelectorAll('.keys li')];
+      document.addEventListener('keydown', (e) => {
+        if (e.metaKey || e.ctrlKey || e.altKey || e.target.closest('input, textarea')) return;
+        const k = e.key === ' ' ? 'space' : e.key;
+        if (k === '>' || k === '<') {
+          press(stepper[k]);
+          step(k === '>' ? 1 : -1);
+        }
+        const hit = rows.find((li) => li.dataset.keys.split(' ').includes(k));
+        if (!hit) return;
+        hit.classList.add('lit');
+        for (const cap of hit.querySelectorAll('.key')) press(cap);
+        setTimeout(() => hit.classList.remove('lit'), 500);
+      });
+
+      const header = document.querySelector('.top');
+      addEventListener('scroll', () => header.classList.toggle('scrolled', scrollY > 8), { passive: true });
+    </script>
+  </body>
+</html>
