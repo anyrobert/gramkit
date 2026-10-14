@@ -13,9 +13,16 @@ import { audibleVideo, contains, pointer } from './videos';
 const touched = new WeakSet<HTMLVideoElement>();
 /** Per-video mute choice in "always unmute" mode. */
 const muteOverride = new WeakMap<HTMLVideoElement, boolean>();
-/** Videos where Instagram keeps fighting back; we stop correcting them. */
-const yielded = new WeakSet<HTMLVideoElement>();
-const fights = new WeakMap<HTMLVideoElement, { count: number; since: number }>();
+/**
+ * Corrections per video, counted separately for speed and sound. When Instagram
+ * keeps resetting a value, we stop correcting it for a while instead of
+ * looping; a new source (Instagram reuses <video> elements) starts over.
+ */
+type Fight = { count: number; since: number; pausedUntil: number };
+const fights = { rate: new WeakMap<HTMLVideoElement, Fight>(), audio: new WeakMap<HTMLVideoElement, Fight>() };
+const FIGHT_WINDOW_MS = 2000;
+const FIGHT_LIMIT = 8;
+const FIGHT_PAUSE_MS = 5000;
 
 const USER_INTENT_MS = 700;
 
@@ -27,16 +34,16 @@ function hasUserActivation(): boolean {
   return navigator.userActivation?.hasBeenActive ?? true;
 }
 
-function fightBack(video: HTMLVideoElement): boolean {
-  if (yielded.has(video)) return false;
+function fightBack(video: HTMLVideoElement, kind: keyof typeof fights): boolean {
   const now = performance.now();
-  const f = fights.get(video);
-  if (!f || now - f.since > 2000) {
-    fights.set(video, { count: 1, since: now });
+  const f = fights[kind].get(video);
+  if (f && now < f.pausedUntil) return false;
+  if (!f || now - f.since > FIGHT_WINDOW_MS) {
+    fights[kind].set(video, { count: 1, since: now, pausedUntil: 0 });
     return true;
   }
-  if (++f.count > 8) {
-    yielded.add(video);
+  if (++f.count > FIGHT_LIMIT) {
+    f.pausedUntil = now + FIGHT_PAUSE_MS;
     return false;
   }
   return true;
@@ -86,7 +93,7 @@ function onRateChange(video: HTMLVideoElement): void {
     setSpeed(video.playbackRate);
     return;
   }
-  if (fightBack(video)) applySpeed(video);
+  if (fightBack(video, 'rate')) applySpeed(video);
 }
 
 function onVolumeChange(video: HTMLVideoElement): void {
@@ -107,7 +114,7 @@ function onVolumeChange(video: HTMLVideoElement): void {
     applyAudio(video);
     return;
   }
-  if (fightBack(video)) applyAudio(video);
+  if (fightBack(video, 'audio')) applyAudio(video);
 }
 
 export function setSpeed(rate: number): void {
@@ -154,6 +161,10 @@ export function installMedia(): void {
       true,
     );
 
+  on('loadstart', (video) => {
+    fights.rate.delete(video);
+    fights.audio.delete(video);
+  });
   on('loadedmetadata', applySpeed);
   on('play', (video) => {
     applySpeed(video);
