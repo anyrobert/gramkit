@@ -37,7 +37,7 @@ Shortcuts never fire while you type in messages, comments or search. Arrow keys 
 **Focus**
 
 - Open the **Following** feed (people you follow, newest first) instead of Home.
-- Hide **Reels** and **Explore**: the tabs go, and their feeds send you home. A single reel someone sends you still opens.
+- Hide **Reels** and **Explore**: the tabs go, and typing their address sends you home. A reel or post opened from the feed, a profile or a message still opens.
 - Hide **suggested accounts**.
 
 No tracking, no account, no network requests. Settings sync through your browser; Gramkit only runs on instagram.com.

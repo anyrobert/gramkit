@@ -33,20 +33,21 @@ function isHome(url: URL): boolean {
   return url.pathname === '/' && !url.searchParams.has('variant');
 }
 
-/** Sends blocked pages home. Returns true when it navigated away. */
-function guardRoute(): boolean {
+/**
+ * Sends blocked pages home. Only the Reels and Explore tab pages are blocked,
+ * so a single reel or post opened from the feed, a profile or a link stays
+ * open. `location.replace` reloads Instagram, so the Following redirect never
+ * runs on in-app URL changes (`pageLoad` false); in-app trips home go through
+ * the Home link handler below.
+ */
+function guardRoute(pageLoad: boolean): void {
   const f = flags();
   const path = location.pathname;
-  const home = f.following ? FOLLOWING : '/';
-  if ((f.reels && path.startsWith('/reels/')) || (f.explore && path === '/explore/')) {
-    location.replace(home);
-    return true;
-  }
-  if (f.following && isHome(new URL(location.href))) {
+  if ((f.reels && path === '/reels/') || (f.explore && path === '/explore/')) {
+    location.replace(f.following ? FOLLOWING : '/');
+  } else if (pageLoad && f.following && isHome(new URL(location.href))) {
     location.replace(FOLLOWING);
-    return true;
   }
-  return false;
 }
 
 /**
@@ -88,10 +89,11 @@ export function installFocus(): void {
   document.documentElement.append(style);
 
   applyFlags();
-  guardRoute();
-  subscribe(() => {
+  guardRoute(true);
+  subscribe((prev) => {
+    if (prev.settings === store.settings) return;
     applyFlags();
-    guardRoute();
+    guardRoute(true);
     if (flags().suggestions) markSuggestions();
   });
 
@@ -101,7 +103,7 @@ export function installFocus(): void {
   setInterval(() => {
     if (location.href === lastHref) return;
     lastHref = location.href;
-    guardRoute();
+    guardRoute(false);
   }, 250);
 
   // Clicking Instagram's Home link: go straight to Following instead of loading Home first.

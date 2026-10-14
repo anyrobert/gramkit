@@ -307,6 +307,22 @@ try {
     await page.goto('https://www.instagram.com/reel/abc123/');
     await sleep(800);
     check('a single reel shared in DMs still opens', await page.evaluate(() => location.pathname === '/reel/abc123/'));
+    await page.goto('https://www.instagram.com/?variant=following');
+    await page.waitForFunction(() => window.fixtureReady, { timeout: 15000 });
+    await page.evaluate(() => {
+      window.sameDocument = true;
+      history.pushState(null, '', '/reels/DW7AKrtjQQl/');
+    });
+    await sleep(800);
+    const openedReel = await page.evaluate(() => ({ path: location.pathname, sameDocument: window.sameDocument === true }));
+    await page.evaluate(() => history.pushState(null, '', '/'));
+    await sleep(800);
+    const closedReel = await page.evaluate(() => ({ path: location.pathname, sameDocument: window.sameDocument === true }));
+    check(
+      'opening a reel from the feed and closing it never reloads the page',
+      openedReel.path === '/reels/DW7AKrtjQQl/' && openedReel.sameDocument && closedReel.path === '/' && closedReel.sameDocument,
+      { openedReel, closedReel },
+    );
 
     // Master switch -------------------------------------------------------------
     await page.goto('https://www.instagram.com/?variant=following');
