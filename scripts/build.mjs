@@ -32,6 +32,7 @@ const base = {
   name: NAME,
   version,
   description: '__MSG_description__',
+  homepage_url: 'https://anyrobert.github.io/gramkit/',
   default_locale: 'en',
   permissions: ['storage', 'downloads'],
   host_permissions: [INSTAGRAM],

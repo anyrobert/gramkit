@@ -1,4 +1,6 @@
-# Gramkit for Instagram
+# Gramkit
+
+**[Website](https://anyrobert.github.io/gramkit/)** · **[Privacy](https://anyrobert.github.io/gramkit/privacy.html)**
 
 Instagram on the web has no speed control, no seek bar, no volume slider, no downloads and no keyboard shortcuts, and it mutes every video again as you scroll. Gramkit adds all of that, plus focus tools that keep Instagram on the people you follow, or on your messages.
 
