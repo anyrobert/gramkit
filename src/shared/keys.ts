@@ -63,6 +63,13 @@ export function comboLabels(combo: string): string[] {
   return splitCombo(combo).map((part) => LABELS[part] ?? part);
 }
 
+/** Keys people need for moving through a page: focus, open, go back. Never bound. */
+const RESERVED = new Set(['Tab', 'Enter', 'Backspace']);
+
+export function isReserved(combo: string): boolean {
+  return RESERVED.has(splitCombo(combo).at(-1) ?? '');
+}
+
 export const MAX_KEYS_PER_ACTION = 8;
 const MAX_COMBO_LENGTH = 40;
 
@@ -72,7 +79,7 @@ export function cleanKeymap(raw: unknown): Keymap {
   if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return keymap;
   for (const [id, keys] of Object.entries(raw)) {
     if (!Object.hasOwn(ACTION_BY_ID, id) || !Array.isArray(keys)) continue;
-    const combos = keys.filter((k): k is string => typeof k === 'string' && k.length > 0 && k.length <= MAX_COMBO_LENGTH);
+    const combos = keys.filter((k): k is string => typeof k === 'string' && k.length > 0 && k.length <= MAX_COMBO_LENGTH && !isReserved(k));
     keymap[id as ActionId] = [...new Set(combos)].slice(0, MAX_KEYS_PER_ACTION);
   }
   return keymap;

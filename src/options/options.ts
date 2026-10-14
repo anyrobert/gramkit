@@ -1,5 +1,5 @@
 import { ACTIONS, ACTION_BY_ID, DIGITS, GROUPS, keysFor, type ActionId, type Keymap } from '../shared/actions';
-import { comboFromEvent, comboLabels, MAX_KEYS_PER_ACTION } from '../shared/keys';
+import { comboFromEvent, comboLabels, isReserved, MAX_KEYS_PER_ACTION } from '../shared/keys';
 import { loadSettings, onSettingsChange, saveSettings, type Settings } from '../shared/settings';
 import { $, bindSettings, buildRows, renderSettings } from '../shared/ui';
 
@@ -143,6 +143,10 @@ window.addEventListener(
     e.preventDefault();
     e.stopPropagation();
     const id = capturing;
+    if (isReserved(combo)) {
+      flashNote(id, 'Tab, Enter and Backspace stay with the browser');
+      return render();
+    }
     capturing = null;
     if (combo === 'Escape') return render();
 
