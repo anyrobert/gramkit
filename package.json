@@ -13,7 +13,8 @@
     "icons": "node scripts/icons.mjs",
     "start": "npm run build && web-ext run --source-dir dist/firefox --firefox /Applications/Zen.app/Contents/MacOS/zen --start-url https://www.instagram.com/",
     "start:chrome": "npm run build && web-ext run --target chromium --source-dir dist/chrome --start-url https://www.instagram.com/",
-    "e2e": "npm run build && node test/e2e.mjs"
+    "e2e": "npm run build && node test/e2e.mjs",
+    "marketing": "node scripts/marketing.mjs"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.0",

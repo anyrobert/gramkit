@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Instagram</title>
+  <!-- The page the marketing assets are shot on. scripts/marketing.mjs serves it
+       as www.instagram.com so the real extension runs on it.
+         ?layout=feed       desktop feed, 1280×800
+         ?layout=vertical   9:16 demo frame: caption band, a reel, key caps -->
+  <style>
+    @font-face { font-family: 'Bricolage Grotesque'; src: url('/__gk/font/bricolage-latin.woff2') format('woff2'); font-weight: 200 800; }
+    @font-face { font-family: 'JetBrains Mono'; src: url('/__gk/font/jetbrains-mono-latin.woff2') format('woff2'); font-weight: 400 700; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #000; color: #f5f5f5; font: 14px/1.35 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overflow: hidden; }
+    a { color: inherit; text-decoration: none; }
+    svg.i { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; display: block; }
+    [role=button] { cursor: pointer; }
+    .avatar { border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #1d0c06; flex: none; }
+
+    /* Desktop feed */
+    .feed { display: grid; grid-template-columns: 244px 1fr 320px; height: 100vh; }
+    nav { border-right: 1px solid #262626; padding: 34px 12px 20px; display: flex; flex-direction: column; gap: 4px; }
+    nav .brand { font: italic 600 26px/1 'Bricolage Grotesque', serif; letter-spacing: -0.02em; padding: 0 12px 26px; }
+    nav a { display: flex; align-items: center; gap: 16px; padding: 12px; border-radius: 8px; font-size: 15px; }
+    nav a.on { font-weight: 700; }
+    nav a .avatar { width: 24px; height: 24px; font-size: 11px; background: linear-gradient(135deg, #ffd27a, #ff6a5c); }
+    main { display: flex; justify-content: center; overflow: hidden; }
+    .column { width: 470px; padding-top: 22px; }
+    .stories { display: flex; gap: 16px; padding: 0 4px 18px; }
+    .story { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; color: #ddd; width: 66px; }
+    .ring { width: 62px; height: 62px; border-radius: 50%; padding: 3px; background: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf); }
+    .ring .avatar { width: 100%; height: 100%; border: 3px solid #000; font-size: 18px; }
+    article { margin-bottom: 40px; }
+    article header { display: flex; align-items: center; gap: 10px; padding: 0 0 10px; }
+    article header .avatar { width: 32px; height: 32px; font-size: 13px; }
+    article header b { font-weight: 600; }
+    article header span { color: #a8a8a8; }
+    article header .more { margin-left: auto; font-weight: 700; letter-spacing: 1px; }
+    .media { position: relative; width: 470px; height: 588px; border-radius: 4px; overflow: hidden; background: #111; border: 1px solid #262626; }
+    .media video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    section.actions { display: flex; gap: 16px; padding: 12px 0 8px; }
+    section.actions .save { margin-left: auto; }
+    .likes { font-weight: 600; }
+    .caption { margin-top: 4px; color: #e8e8e8; }
+    aside { padding: 36px 24px; }
+    .me, .sugg { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .me .avatar { width: 44px; height: 44px; font-size: 16px; background: linear-gradient(135deg, #ffd27a, #ff6a5c); }
+    .sugg .avatar { width: 32px; height: 32px; font-size: 12px; }
+    .muted { color: #a8a8a8; font-size: 13px; }
+    .blue { margin-left: auto; color: #0095f6; font-weight: 600; font-size: 12px; }
+    aside h4 { color: #a8a8a8; font-size: 14px; margin: 8px 0 14px; }
+
+    /* Vertical demo frame */
+    .vertical { width: 540px; height: 960px; position: relative;
+      background: radial-gradient(120% 60% at 80% 0%, #3a1622 0%, transparent 60%), radial-gradient(90% 50% at 0% 100%, #2a1240 0%, transparent 60%), #0f0c0c; }
+    .band { position: absolute; top: 0; left: 0; right: 0; height: 168px; display: flex; flex-direction: column; justify-content: center; padding: 18px 36px 8px; }
+    .band h1 { font: 800 38px/1.02 'Bricolage Grotesque', sans-serif; letter-spacing: -0.025em; transition: opacity 0.25s, transform 0.25s; }
+    .band h1 em { font-style: normal; background: linear-gradient(100deg, #ffb547, #ff4f7b); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .band p { margin-top: 8px; font: 600 16px/1.3 'Bricolage Grotesque', sans-serif; color: #c9bdb4; transition: opacity 0.25s; }
+    .band.swap h1, .band.swap p { opacity: 0; transform: translateY(8px); }
+    .reel { position: absolute; left: 54px; top: 172px; width: 432px; height: 768px; border-radius: 22px; overflow: hidden; background: #111;
+      box-shadow: 0 30px 80px rgb(0 0 0 / 0.6), 0 0 0 1px rgb(255 255 255 / 0.08); }
+    .reel video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .reel .side { position: absolute; right: 12px; bottom: 120px; display: flex; flex-direction: column; gap: 18px; align-items: center; font-size: 12px; font-weight: 600; text-shadow: 0 1px 3px #0008; }
+    .reel .side svg.i { width: 28px; height: 28px; filter: drop-shadow(0 1px 2px #0008); }
+    .reel .side div { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+    /* Key caps and end card, shared */
+    .keys { position: absolute; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; pointer-events: none; z-index: 5; }
+    .vertical .keys { top: 690px; }
+    .feed .keys { top: 560px; }
+    .cap { min-width: 64px; height: 64px; padding: 0 18px; display: grid; place-items: center; border-radius: 14px;
+      background: linear-gradient(#3a3030, #231d1d); color: #fff7ef; font: 700 28px/1 'JetBrains Mono', monospace;
+      box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.15), 0 4px 0 #0a0707, 0 10px 30px rgb(0 0 0 / 0.55); animation: pop 0.9s ease forwards; }
+    .then { align-self: center; font: 600 16px 'JetBrains Mono', monospace; color: #fff7ef; text-shadow: 0 1px 4px #000; animation: pop 0.9s ease forwards; }
+    @keyframes pop { 0% { transform: scale(0.6); opacity: 0; } 12% { transform: scale(1.06); opacity: 1; } 22% { transform: scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-6px); } }
+    .endcard { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center;
+      background: radial-gradient(80% 50% at 50% 30%, #3a1622, transparent 70%), #0f0c0c; opacity: 0; transition: opacity 0.5s; pointer-events: none; }
+    .endcard.show { opacity: 1; }
+    .endcard img { width: 120px; height: 120px; filter: drop-shadow(0 18px 40px rgb(255 79 123 / 0.35)); }
+    .endcard h2 { font: 800 56px/1 'Bricolage Grotesque', sans-serif; letter-spacing: -0.03em; }
+    .endcard h3 { font: 700 26px/1.15 'Bricolage Grotesque', sans-serif; padding: 0 40px; }
+    .endcard h3 em { font-style: normal; background: linear-gradient(100deg, #ffb547, #ff4f7b); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .endcard p { font: 600 15px/1.5 'JetBrains Mono', monospace; color: #c9bdb4; letter-spacing: 0.02em; }
+  </style>
+</head>
+<body>
+  <script>
+    const layout = new URLSearchParams(location.search).get('layout') || 'feed';
+    const ICONS = {
+      home: '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1Z"/>',
+      search: '<circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/>',
+      explore: '<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5Z"/>',
+      reels: '<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M3 8h18M8 3l3 5M14 3l3 5"/><path d="m10 12 5 3-5 3Z"/>',
+      messages: '<path d="M21 3 3 10.5l7 2.5 2.5 7Z"/><path d="m10 13 4.5-4.5"/>',
+      heart: '<path d="M12 20s-7.5-4.6-9-9.3C2 7.4 4.2 4.5 7.3 4.5c2 0 3.4 1.1 4.7 2.8 1.3-1.7 2.7-2.8 4.7-2.8 3.1 0 5.3 2.9 4.3 6.2C19.5 15.4 12 20 12 20Z"/>',
+      comment: '<path d="M20.5 11.5a8.5 8.5 0 0 1-12.6 7.4L3.5 20.5l1.6-4.4A8.5 8.5 0 1 1 20.5 11.5Z"/>',
+      share: '<path d="M21 3 3 10.5l7 2.5 2.5 7Z"/><path d="m10 13 4.5-4.5"/>',
+      save: '<path d="M19 21 12 16l-7 5V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1Z"/>',
+      create: '<rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 8v8M8 12h8"/>',
+    };
+    const icon = (name, label) => `<svg class="i" viewBox="0 0 24 24"${label ? ` aria-label="${label}"` : ''}>${label ? `<title>${label}</title>` : ''}${ICONS[name]}</svg>`;
+    const avatar = (letter, colors, size) => `<span class="avatar" style="background:linear-gradient(135deg,${colors[0]},${colors[1]})${size ? `;width:${size}px;height:${size}px` : ''}">${letter}</span>`;
+    const PALETTE = [['#ffd27a', '#ff6a5c'], ['#8be9fd', '#6d5dfc'], ['#b8f2a0', '#2fb380'], ['#ffc2e2', '#c35cff'], ['#fff1a8', '#ff9f43'], ['#a0e7ff', '#3b82f6'], ['#ffd1d1', '#ff4f7b']];
+    const actions = () => `<section class="actions">
+        <div role="button">${icon('heart', 'Like')}</div>
+        <div role="button">${icon('comment', 'Comment')}</div>
+        <div role="button">${icon('share', 'Share Post')}</div>
+        <div role="button" class="save">${icon('save', 'Save')}</div>
+      </section>`;
+
+    if (layout === 'vertical') {
+      document.body.innerHTML = `<div class="vertical">
+        <div class="band" id="band"><h1 id="headline"></h1><p id="sub"></p></div>
+        <article class="reel" id="post">
+          <video id="v1" data-src="/__gk/clip-brew.mp4" muted loop playsinline></video>
+          <div class="side">
+            <div role="button">${icon('heart', 'Like')}<span>48.2K</span></div>
+            <div role="button">${icon('comment', 'Comment')}<span>612</span></div>
+            <div role="button">${icon('share', 'Share')}<span>3.1K</span></div>
+            <div role="button">${icon('save', 'Save')}</div>
+          </div>
+          <a href="/p/DAbCdEfGhIj/" hidden></a>
+        </article>
+        <div class="keys" id="keys"></div>
+        <div class="endcard" id="end"></div>
+      </div>`;
+    } else {
+      const stories = ['marina', 'leo.k', 'studio.tsu', 'ana.b', 'kai', 'joão', 'mel'];
+      document.body.innerHTML = `<div class="feed">
+        <nav>
+          <div class="brand"></div>
+          <a href="/" class="on">${icon('home')}Home</a>
+          <a href="/explore/search/">${icon('search')}Search</a>
+          <a href="/explore/">${icon('explore')}Explore</a>
+          <a href="/reels/">${icon('reels')}Reels</a>
+          <a href="/direct/inbox/">${icon('messages')}Messages</a>
+          <a href="/create/">${icon('create')}Create</a>
+          <a href="/robert.dev/"><span class="avatar">R</span>Profile</a>
+        </nav>
+        <main><div class="column">
+          <div class="stories">${stories.map((s, i) => `<div class="story"><span class="ring">${avatar(s[0].toUpperCase(), PALETTE[i % PALETTE.length])}</span>${s}</div>`).join('')}</div>
+          <article id="p1">
+            <header>${avatar('S', PALETTE[0])}<a href="/slowmorning.coffee/"><b>slowmorning.coffee</b></a><span>• 2h</span><span class="more">···</span></header>
+            <div class="media" id="m1"><video id="v1" data-src="/__gk/clip-brew.mp4" muted loop playsinline></video></div>
+            ${actions()}
+            <div class="likes">12,480 likes</div>
+            <div class="caption"><b>slowmorning.coffee</b> Cold brew, the lazy way ☕️ <a class="muted" href="/p/DAbCdEfGhIj/">more</a></div>
+          </article>
+          <article id="p2">
+            <header>${avatar('M', PALETTE[1])}<a href="/move.daily/"><b>move.daily</b></a><span>• 5h</span><span class="more">···</span></header>
+            <div class="media" id="m2"><video id="v2" data-src="/__gk/clip-stretch.mp4" muted loop playsinline></video></div>
+            ${actions()}
+            <div class="likes">8,031 likes</div>
+            <a href="/p/DBbCdEfGhIj/" hidden></a>
+          </article>
+        </div></main>
+        <aside>
+          <div class="me"><span class="avatar">R</span><div><b>robert.dev</b><div class="muted">Robert</div></div><span class="blue">Switch</span></div>
+          <h4>Suggested for you</h4>
+          ${['nora.films', 'tide.pool', 'pixel.garden', 'b.lima'].map((n, i) => `<div class="sugg">${avatar(n[0].toUpperCase(), PALETTE[(i + 2) % PALETTE.length])}<div><b>${n}</b><div class="muted">Suggested for you</div></div><span class="blue">Follow</span></div>`).join('')}
+        </aside>
+        <div class="keys" id="keys" style="left:calc(244px + (100vw - 564px) / 2)"></div>
+      </div>`;
+    }
+
+    // Instagram-like playback: blob sources, muted, playing what's on screen.
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) e.intersectionRatio > 0.6 ? e.target.play().catch(() => {}) : e.target.pause();
+    }, { threshold: [0, 0.6, 1] });
+    const loaded = [...document.querySelectorAll('video')].map(async (v) => {
+      v.src = URL.createObjectURL(await (await fetch(v.dataset.src)).blob());
+      await new Promise((r) => v.addEventListener('loadedmetadata', r, { once: true }));
+      io.observe(v);
+    });
+
+    window.stage = {
+      caption(title, sub = '') {
+        const band = document.getElementById('band');
+        if (!band) return;
+        band.classList.add('swap');
+        setTimeout(() => {
+          document.getElementById('headline').innerHTML = title;
+          document.getElementById('sub').textContent = sub;
+          band.classList.remove('swap');
+        }, 220);
+      },
+      key(...labels) {
+        const keys = document.getElementById('keys');
+        keys.replaceChildren();
+        labels.forEach((label, i) => {
+          if (i) keys.insertAdjacentHTML('beforeend', '<span class="then">then</span>');
+          keys.insertAdjacentHTML('beforeend', `<span class="cap">${label}</span>`);
+        });
+      },
+      end(hook) {
+        const end = document.getElementById('end');
+        end.innerHTML = `<img src="/__gk/icon.svg" alt=""><h2>Gramkit</h2><h3>${hook}</h3><p>Free for Chrome &amp; Firefox<br>No account · No tracking</p>`;
+        end.classList.add('show');
+      },
+    };
+    window.stageReady = Promise.all(loaded);
+  </script>
+</body>
+</html>

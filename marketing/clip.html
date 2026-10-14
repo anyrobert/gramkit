@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <!-- The sample reel in the marketing assets: a short tutorial whose steps,
+       progress bars and timer make playback speed easy to see. scripts/marketing.mjs
+       calls render(t) for each frame and encodes the screenshots. -->
+  <style>
+    @font-face { font-family: 'Bricolage Grotesque'; src: url('/__gk/font/bricolage-latin.woff2') format('woff2'); font-weight: 200 800; }
+    @font-face { font-family: 'JetBrains Mono'; src: url('/__gk/font/jetbrains-mono-latin.woff2') format('woff2'); font-weight: 400 700; }
+    * { box-sizing: border-box; margin: 0; }
+    html, body { width: 540px; height: 960px; overflow: hidden; background: #000; }
+    body { font-family: 'Bricolage Grotesque', system-ui, sans-serif; color: #fff; }
+    #bg { position: absolute; inset: 0; }
+    .blob { position: absolute; width: 520px; height: 520px; border-radius: 50%; filter: blur(70px); opacity: 0.85; }
+    #bars { position: absolute; top: 44px; left: 28px; right: 28px; display: flex; gap: 6px; }
+    .bar { flex: 1; height: 4px; border-radius: 2px; background: rgb(255 255 255 / 0.3); overflow: hidden; }
+    .bar i { display: block; height: 100%; background: #fff; transform-origin: left; }
+    #tag { position: absolute; top: 72px; left: 28px; padding: 8px 14px; border-radius: 999px; background: rgb(0 0 0 / 0.28);
+      font: 700 15px/1 'JetBrains Mono', monospace; letter-spacing: 0.12em; }
+    #timer { position: absolute; top: 72px; right: 28px; padding: 8px 12px; border-radius: 10px; background: rgb(0 0 0 / 0.35);
+      font: 700 18px/1 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+    #art { position: absolute; left: 0; right: 0; top: 230px; text-align: center; font-size: 190px; line-height: 1; }
+    #ring { position: absolute; left: 50%; top: 225px; width: 300px; height: 300px; margin-left: -150px; border-radius: 50%;
+      border: 3px dashed rgb(255 255 255 / 0.35); }
+    #step { position: absolute; left: 36px; right: 36px; top: 590px; font: 700 18px/1 'JetBrains Mono', monospace; letter-spacing: 0.16em; opacity: 0.85; }
+    #title { position: absolute; left: 36px; right: 36px; top: 622px; font-size: 54px; font-weight: 800; line-height: 1.02; letter-spacing: -0.02em; }
+    #wave { position: absolute; left: 36px; right: 36px; bottom: 120px; height: 56px; display: flex; align-items: center; gap: 5px; }
+    #wave i { flex: 1; border-radius: 3px; background: rgb(255 255 255 / 0.8); }
+    #user { position: absolute; left: 36px; bottom: 60px; display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 700; }
+    #user b { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #ffd27a, #ff6a5c); }
+  </style>
+</head>
+<body>
+  <div id="bg"></div>
+  <div id="bars"></div>
+  <div id="tag"></div>
+  <div id="timer">0:00</div>
+  <div id="ring"></div>
+  <div id="art"></div>
+  <div id="step"></div>
+  <div id="title"></div>
+  <div id="wave"></div>
+  <div id="user"><b></b><span id="handle"></span></div>
+  <script>
+    const THEMES = {
+      brew: {
+        tag: 'COLD BREW', handle: 'slowmorning.coffee',
+        colors: ['#ff9a3c', '#ff4f7b', '#7b3cff', '#ffcf5c'], base: '#2a0f1c',
+        steps: [['🫘', 'Grind 100 g, coarse'], ['💧', 'Add 1 L of cold water'], ['🥄', 'Stir, then cover'], ['⏳', 'Wait 14 hours'], ['🧊', 'Strain over ice']],
+      },
+      stretch: {
+        tag: 'DESK RESET', handle: 'move.daily',
+        colors: ['#38d9a9', '#3b82f6', '#a855f7', '#22d3ee'], base: '#0b1530',
+        steps: [['🙆', 'Reach up, 5 breaths'], ['🦒', 'Roll your neck slowly'], ['🧘', 'Twist left, then right'], ['🚶', 'Walk for one minute']],
+      },
+    };
+    const theme = THEMES[new URLSearchParams(location.search).get('theme') || 'brew'];
+    const STEP = 4.8;
+    const $ = (id) => document.getElementById(id);
+    $('tag').textContent = `${theme.tag} · ${theme.steps.length} STEPS`;
+    $('handle').textContent = theme.handle;
+    $('bg').style.background = theme.base;
+    const blobs = theme.colors.map((c) => {
+      const b = document.createElement('div');
+      b.className = 'blob';
+      b.style.background = c;
+      $('bg').append(b);
+      return b;
+    });
+    const bars = theme.steps.map(() => {
+      const b = document.createElement('div');
+      b.className = 'bar';
+      b.append(document.createElement('i'));
+      $('bars').append(b);
+      return b.firstChild;
+    });
+    const waves = Array.from({ length: 34 }, () => $('wave').appendChild(document.createElement('i')));
+    window.DURATION = theme.steps.length * STEP;
+
+    window.render = (t) => {
+      blobs.forEach((b, i) => {
+        const a = t * (0.35 + i * 0.11) + i * 1.7;
+        b.style.transform = `translate(${10 + 180 * Math.cos(a) + (i % 2) * 60}px, ${120 + 260 * Math.sin(a * 0.8) + i * 90}px)`;
+      });
+      const index = Math.min(theme.steps.length - 1, Math.floor(t / STEP));
+      const local = t - index * STEP;
+      bars.forEach((bar, i) => (bar.style.transform = `scaleX(${i < index ? 1 : i > index ? 0 : local / STEP})`));
+      const [art, title] = theme.steps[index];
+      $('art').textContent = art;
+      $('step').textContent = `STEP ${index + 1}/${theme.steps.length}`;
+      $('title').textContent = title;
+      const enter = Math.min(1, local / 0.35);
+      $('title').style.transform = `translateY(${(1 - enter) * 24}px)`;
+      $('title').style.opacity = enter;
+      $('art').style.transform = `translateY(${Math.sin(t * 3.2) * 14}px) rotate(${Math.sin(t * 1.6) * 6}deg) scale(${0.8 + 0.2 * enter})`;
+      $('ring').style.transform = `rotate(${t * 40}deg)`;
+      waves.forEach((w, i) => {
+        const h = 0.25 + 0.75 * Math.abs(Math.sin(t * 5.3 + i * 0.55) * Math.cos(t * 2.1 + i * 0.27));
+        w.style.height = `${Math.round(h * 56)}px`;
+      });
+      const s = Math.floor(t);
+      $('timer').textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    };
+    window.render(0);
+  </script>
+</body>
+</html>
