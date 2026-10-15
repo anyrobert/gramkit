@@ -14,6 +14,7 @@ Links used everywhere:
 ## Chrome Web Store
 
 **Package:** `dist/gramkit-chrome-<version>.zip`
+**Submit from the terminal:** bump `version` in `package.json`, then `npm run submit:chrome` builds and uploads the zip, and sends it for review to publish. It reads `CLIENT_ID`, `CLIENT_SECRET`, `REFRESH_TOKEN` and `PUBLISHER_ID` from `.env` (keys guide: https://github.com/fregante/chrome-webstore-upload-keys). Listing text and images still change in the dashboard.
 
 ### Store listing
 
