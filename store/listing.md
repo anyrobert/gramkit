@@ -8,6 +8,7 @@ Links used everywhere:
 - Privacy policy: https://anyrobert.github.io/gramkit/privacy.html
 - Support: https://github.com/anyrobert/gramkit/issues
 - Chrome Web Store: https://chromewebstore.google.com/detail/gramkit/nkcecpcmacdmonehkefhhlbnenpgiojk
+- Firefox Add-ons: https://addons.mozilla.org/firefox/addon/gramkit/
 
 ---
 
