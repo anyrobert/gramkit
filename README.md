@@ -1,6 +1,6 @@
 # Gramkit
 
-**[Chrome Web Store](https://chromewebstore.google.com/detail/gramkit/nkcecpcmacdmonehkefhhlbnenpgiojk)** · **[Website](https://anyrobert.github.io/gramkit/)** · **[Privacy](https://anyrobert.github.io/gramkit/privacy.html)**
+**[Chrome Web Store](https://chromewebstore.google.com/detail/gramkit/nkcecpcmacdmonehkefhhlbnenpgiojk)** · **[Firefox Add-ons](https://addons.mozilla.org/firefox/addon/gramkit/)** · **[Website](https://anyrobert.github.io/gramkit/)** · **[Privacy](https://anyrobert.github.io/gramkit/privacy.html)**
 
 Instagram on the web has no speed control, no seek bar, no volume slider, no downloads and no keyboard shortcuts, and it mutes every video again as you scroll. Gramkit adds all of that, plus focus tools that keep Instagram on the people you follow, or on your messages.
 
@@ -87,7 +87,9 @@ To run your own build instead (below, or the archive from `dist/`):
 
 ### Zen, Firefox
 
-Build it (below), or take the archive from `dist/`.
+Install it from **[Firefox Add-ons](https://addons.mozilla.org/firefox/addon/gramkit/)**.
+
+To run your own build instead (below, or the archive from `dist/`):
 
 1. Open `about:config` and set `xpinstall.signatures.required` to `false` (Zen, Firefox Developer Edition, Nightly), or sign the build as below.
 2. Open `about:addons`, click the gear, choose **Install Add-on From File…** and pick `gramkit-firefox-<version>.xpi`.
