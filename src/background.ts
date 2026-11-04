@@ -1,5 +1,5 @@
 import { api, type DownloadFile, type DownloadResult, type Message } from './shared/browser';
-import { loadSettings } from './shared/settings';
+import { DEFAULT_SETTINGS, loadSettings } from './shared/settings';
 
 type Outcome = 'ok' | 'failed' | 'canceled';
 
@@ -15,9 +15,10 @@ async function downloadUrl(url: string): Promise<string> {
   return URL.createObjectURL(blob);
 }
 
-// Chrome starts a download before its save dialog and only cancels it after;
-// Firefox resolves after the dialog. Either way the item settles once it has a
-// file name, or ends interrupted or erased when the dialog is closed.
+// Chrome starts a download before its save dialog and marks it interrupted
+// (USER_CANCELED) when the dialog is closed; Firefox rejects instead. Either
+// way the item settles once it has a file name. Neither browser erases it on
+// cancel, so an erased item was cleared by someone else and counts as saved.
 function settled(id: number): Promise<Outcome> {
   return new Promise((resolve) => {
     const finish = (outcome: Outcome) => {
@@ -33,12 +34,12 @@ function settled(id: number): Promise<Outcome> {
       if (delta.id === id) check(delta.filename?.current, delta.state?.current, delta.error?.current);
     };
     const erased = (erasedId: number) => {
-      if (erasedId === id) finish('canceled');
+      if (erasedId === id) finish('ok');
     };
     api.downloads.onChanged.addListener(changed);
     api.downloads.onErased.addListener(erased);
     void api.downloads.search({ id }).then(
-      ([item]) => (item ? check(item.filename, item.state, item.error) : finish('canceled')),
+      ([item]) => (item ? check(item.filename, item.state, item.error) : finish('ok')),
       () => finish('failed'),
     );
   });
@@ -60,7 +61,7 @@ async function save(file: DownloadFile, folder: boolean, ask: boolean): Promise<
 }
 
 async function download(files: DownloadFile[]): Promise<DownloadResult> {
-  const { gramkitFolder, askWhereToSave } = await loadSettings();
+  const { gramkitFolder, askWhereToSave } = await loadSettings().catch(() => DEFAULT_SETTINGS);
   const result: DownloadResult = { ok: 0, failed: 0, canceled: 0 };
   for (const file of files) {
     const outcome = await save(file, gramkitFolder, askWhereToSave);
