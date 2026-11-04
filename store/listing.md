@@ -45,6 +45,7 @@ VIDEO
 
 DOWNLOADS
 • Save the post, reel or story on screen at the best quality Instagram has, including every slide of a carousel. Shift+D or the download button on the bar.
+• Files go to a Gramkit folder in your downloads, straight into your download folder, or wherever you pick each time.
 
 KEYBOARD
 YouTube- and Gmail-style shortcuts, all rebindable:
@@ -85,6 +86,7 @@ VÍDEO
 
 DOWNLOADS
 • Salve o post, reel ou story na tela na melhor qualidade que o Instagram oferece, incluindo cada foto de um carrossel. Shift+D ou o botão de download na barra.
+• Os arquivos vão para uma pasta Gramkit nos seus downloads, direto para a pasta de downloads, ou para onde você escolher a cada vez.
 
 TECLADO
 Atalhos no estilo do YouTube e do Gmail, todos personalizáveis:
@@ -122,7 +124,7 @@ Gramkit improves Instagram on the web: it adds video playback controls (speed, s
 | Permission | Justification |
 |---|---|
 | `storage` | Saves the user's settings, last speed and volume, today's time on Instagram for the optional daily limit, and recently opened profile names for the command palette. All of it stays in the browser. |
-| `downloads` | Saves the post, reel, story or video frame the user asks to download into Downloads/Gramkit/. Nothing is downloaded without a user action. |
+| `downloads` | Saves the post, reel, story or video frame the user asks to download into the browser's download folder (a Gramkit subfolder by default), or where the user picks in the save dialog. Nothing is downloaded without a user action. |
 | Host permission `https://www.instagram.com/*` | The content script adds the control bar, shortcuts and focus tools to instagram.com, and requests the media of a post from Instagram's own API (with the user's session) when the user asks for a download. It runs on no other site. |
 
 **Remote code:** No, I am not using remote code. All code is bundled in the package.
