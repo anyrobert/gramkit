@@ -340,8 +340,15 @@ export async function downloadCurrent(from?: HTMLVideoElement | null): Promise<b
     return true;
   }
   const result = await sendDownloads(files);
+  if (!result) return true;
   toast(
-    result.failed ? t('Download failed') : files.length > 1 ? t('Downloading {n} files', { n: files.length }) : t('Downloading'),
+    result.failed
+      ? t('Download failed')
+      : !result.ok
+        ? t('Download canceled')
+        : result.ok > 1
+          ? t('Downloading {n} files', { n: result.ok })
+          : t('Downloading'),
     anchor,
   );
   return true;

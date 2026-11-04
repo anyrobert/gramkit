@@ -28,6 +28,11 @@ const FOCUS_TOGGLES: Toggle[] = [
   { key: 'messagesOnly', title: 'Messages only', sub: 'Home, Reels and Explore go to Messages' },
 ];
 
+const DOWNLOAD_TOGGLES: Toggle[] = [
+  { key: 'askWhereToSave', title: 'Ask where to save', sub: 'Pick a folder and name for each file' },
+  { key: 'gramkitFolder', title: 'Gramkit folder', sub: 'Off: straight into your download folder' },
+];
+
 const SEGS: Record<SegKey, { title: string; sub: string; options: { value: string; label: string }[] }> = {
   audioMode: {
     title: 'Sound',
@@ -172,14 +177,15 @@ function languageRow(): HTMLLabelElement {
 }
 
 /**
- * Fills (or refills, after a language change) `[data-rows]` containers: `video` and `focus` in both pages; `limits`
- * and `general` only where the page has room for them.
+ * Fills (or refills, after a language change) `[data-rows]` containers: `video` and `focus` in both pages; `limits`,
+ * `downloads` and `general` only where the page has room for them.
  */
 export function buildRows(root: ParentNode = document): void {
   for (const container of root.querySelectorAll('[data-rows]')) container.replaceChildren();
   root.querySelector('[data-rows="video"]')?.append(...VIDEO_TOGGLES.map(toggleRow), segRow('audioMode'), segRow('videoEnd'));
   root.querySelector('[data-rows="focus"]')?.append(...FOCUS_TOGGLES.map(toggleRow));
   root.querySelector('[data-rows="limits"]')?.append(limitRow(), focusHoursRow());
+  root.querySelector('[data-rows="downloads"]')?.append(...DOWNLOAD_TOGGLES.map(toggleRow));
   root.querySelector('[data-rows="general"]')?.append(languageRow());
 }
 

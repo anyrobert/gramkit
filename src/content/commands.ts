@@ -126,8 +126,13 @@ export function frameStep(video: HTMLVideoElement, direction: 1 | -1): void {
   toast(direction > 0 ? t('Next frame') : t('Previous frame'), video, formatTime(video.currentTime));
 }
 
-export async function sendDownloads(files: DownloadFile[]): Promise<DownloadResult> {
-  return (await api.runtime.sendMessage({ type: 'download', files } satisfies Message)) as DownloadResult;
+/** Null when no answer came back, e.g. the background stopped while a save dialog stayed open. */
+export async function sendDownloads(files: DownloadFile[]): Promise<DownloadResult | null> {
+  try {
+    return ((await api.runtime.sendMessage({ type: 'download', files } satisfies Message)) as DownloadResult | undefined) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function saveFrame(video: HTMLVideoElement): Promise<void> {
@@ -146,5 +151,5 @@ export async function saveFrame(video: HTMLVideoElement): Promise<void> {
   }
   const stamp = formatTime(video.currentTime).replaceAll(':', '-');
   const result = await sendDownloads([{ url, filename: `frame_${location.pathname.split('/').filter(Boolean).pop() ?? 'instagram'}_${stamp}.png` }]);
-  toast(result.ok ? t('Frame saved') : t('Download failed'), video);
+  if (result) toast(result.ok ? t('Frame saved') : result.canceled ? t('Download canceled') : t('Download failed'), video);
 }
