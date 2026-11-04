@@ -571,6 +571,44 @@ try {
     await page.mouse.click(saveButton.x + saveButton.w / 2, saveButton.y + saveButton.h / 2);
     check('the bar’s download button downloads the post', await until(async () => (await downloads()).filter((d) => d.name.startsWith('Gramkit/alice_DAbCdEfGhIj')).length >= 2, 8000));
 
+    await extPage.$eval('input[data-setting="gramkitFolder"]', (input) => input.click());
+    const folderOff = await until(() => extPage.evaluate(async () => (await chrome.storage.sync.get('settings')).settings?.gramkitFolder === false));
+    await page.bringToFront();
+    await hover('v1');
+    await press('KeyD', { shift: true });
+    const loose = (d) => !d.name.startsWith('Gramkit/') && /\/alice_DAbCdEfGhIj[^/]*\.mp4$/.test(d.name) && d.state === 'complete';
+    check(
+      'the options page turns the Gramkit folder off, and files go straight into the download folder',
+      folderOff && (await until(async () => (await downloads()).some(loose), 8000)),
+      await downloads(),
+    );
+
+    // Headless Chrome closes every save dialog at once, the same as a user canceling it.
+    await setSettings({ gramkitFolder: true, askWhereToSave: true });
+    const canceled = () => extPage.evaluate(async () => (await chrome.downloads.search({ error: 'USER_CANCELED' })).length);
+    const canceledBefore = await canceled();
+    await page.evaluate(() => document.getElementById('p3').scrollIntoView({ block: 'center' }));
+    await hover('m3');
+    await press('KeyD', { shift: true });
+    const canceledToast = await until(async () => (await toastText()) === 'Download canceled', 8000);
+    await sleep(500);
+    const canceledAfter = await canceled();
+    check(
+      'ask where to save: closing the dialog says canceled and skips the rest of the carousel',
+      canceledToast && canceledAfter === canceledBefore + 1,
+      { toast: await toastText(), canceledBefore, canceledAfter },
+    );
+    await page.evaluate(() => scrollTo(0, 0));
+    await hover('v1');
+    await press('KeyS', { shift: true });
+    const frameCanceled = await until(async () => (await canceled()) === canceledAfter + 1, 8000);
+    check(
+      'ask where to save: closing the dialog on a frame says canceled',
+      frameCanceled && (await until(async () => (await toastText()) === 'Download canceled')),
+      { toast: await toastText(), canceled: await canceled() },
+    );
+    await setSettings({ askWhereToSave: false });
+
     await page.goto(`https://www.instagram.com/stories/alice/${STORY_PK}/`);
     await page.waitForFunction(() => window.fixtureReady, { timeout: 15000 });
     await page.mouse.move(1260, 20);

@@ -31,6 +31,10 @@ export interface Settings {
   /** Minutes per day; 0 is no limit. */
   dailyLimit: number;
   focusHours: FocusHours;
+  /** Show the browser's save dialog for every download. */
+  askWhereToSave: boolean;
+  /** Save into a Gramkit folder inside the browser's download folder. */
+  gramkitFolder: boolean;
   language: Language;
   keymap: Keymap;
 }
@@ -57,6 +61,8 @@ export const DEFAULT_SETTINGS: Settings = {
   messagesOnly: false,
   dailyLimit: 0,
   focusHours: { on: false, from: '09:00', to: '18:00', days: [1, 2, 3, 4, 5] },
+  askWhereToSave: false,
+  gramkitFolder: true,
   language: 'auto',
   keymap: {},
 };
@@ -141,6 +147,8 @@ export function cleanSettings(raw: unknown): Settings {
     messagesOnly: bool(s.messagesOnly, d.messagesOnly),
     dailyLimit: finite(s.dailyLimit) ? Math.min(24 * 60, Math.max(0, Math.round(s.dailyLimit))) : d.dailyLimit,
     focusHours: cleanFocusHours(s.focusHours),
+    askWhereToSave: bool(s.askWhereToSave, d.askWhereToSave),
+    gramkitFolder: bool(s.gramkitFolder, d.gramkitFolder),
     language: oneOf(s.language, ['auto', 'en', 'pt'], d.language),
     keymap: cleanKeymap(s.keymap),
   };

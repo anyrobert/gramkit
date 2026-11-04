@@ -26,6 +26,8 @@ const TOGGLES: [BoolSetting, string][] = [
   ['hideExplore', 'Hide Explore'],
   ['hideSuggestions', 'Hide suggested accounts'],
   ['messagesOnly', 'Messages only'],
+  ['askWhereToSave', 'Ask where to save'],
+  ['gramkitFolder', 'Gramkit folder'],
 ];
 
 let node: HTMLDivElement | null = null;

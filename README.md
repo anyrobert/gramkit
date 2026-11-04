@@ -26,7 +26,8 @@ Works in Chrome (and other Chromium browsers) and in Zen and Firefox, from one s
 
 **Downloads**
 
-- `Shift+D`, or the download button on the bar, saves the post, reel or story on screen at the best quality Instagram has: every slide of a carousel, the video of a reel. Files go to `Downloads/Gramkit/`, named `user_code.ext`.
+- `Shift+D`, or the download button on the bar, saves the post, reel or story on screen at the best quality Instagram has: every slide of a carousel, the video of a reel. Files go to a `Gramkit` folder in the browser's download folder, named `user_code.ext`.
+- **Where files go:** in the settings, turn off *Gramkit folder* to save straight into the download folder, or turn on *Ask where to save* to pick a folder and name for each file (closing the dialog skips the rest of a carousel). Extensions can only save inside the browser's download folder; to move that folder, change it in the browser's own settings.
 - Stories download one at a time from the story itself (`/stories/user/…`); highlights aren't supported yet.
 - It asks Instagram for the post the same way instagram.com does, so it needs you logged in, and gets only what your account can already see.
 
@@ -71,7 +72,7 @@ Shortcuts never fire while you type in messages, comments or search. Arrow keys 
 
 **English and Brazilian Portuguese**, following the browser, or chosen in the settings.
 
-No tracking, no account, no servers. The only network requests are to instagram.com, for downloads you ask for. Settings sync through your browser; Gramkit only runs on instagram.com. It asks for the *downloads* permission to save files into `Downloads/Gramkit/`.
+No tracking, no account, no servers. The only network requests are to instagram.com, for downloads you ask for. Settings sync through your browser; Gramkit only runs on instagram.com. It asks for the *downloads* permission to save the files you ask for into your download folder.
 
 ## Install
 
@@ -141,12 +142,12 @@ npm run marketing    # store images, demo GIF and vertical video into dist/marke
 ### Tests
 
 ```sh
-npm run e2e                     # Chrome: 89 checks
+npm run e2e                     # Chrome: 92 checks
 npm run e2e -- --browser=zen    # Zen: the 49 that don't change settings
 node test/live.mjs [reel URL]   # smoke check on live instagram.com, logged out
 ```
 
-`test/e2e.mjs` loads the built extension in a real browser and answers every `www.instagram.com` request with `test/fixture.html`, a page shaped like Instagram: blob video sources, transparent overlays, a speaker button that flips mute, play/pause by visibility, like and save buttons that flip their label, and a carousel. A local server stands in for Instagram's CDN and the media API. It covers speed, sound, seeking, frames, shortcuts and sequences, posts, the palette, downloads (post, carousel, story, frame), typing safety, the bar, rebinding, the focus switches, Messages only, focus hours, the time limit, Portuguese, the master switch, the popup and the options page. Screenshots go to `dist/screenshots/`.
+`test/e2e.mjs` loads the built extension in a real browser and answers every `www.instagram.com` request with `test/fixture.html`, a page shaped like Instagram: blob video sources, transparent overlays, a speaker button that flips mute, play/pause by visibility, like and save buttons that flip their label, and a carousel. A local server stands in for Instagram's CDN and the media API. It covers speed, sound, seeking, frames, shortcuts and sequences, posts, the palette, downloads (post, carousel, story, frame, the folder switch, a closed save dialog), typing safety, the bar, rebinding, the focus switches, Messages only, focus hours, the time limit, Portuguese, the master switch, the popup and the options page. Screenshots go to `dist/screenshots/`.
 
 ### Marketing assets
 
